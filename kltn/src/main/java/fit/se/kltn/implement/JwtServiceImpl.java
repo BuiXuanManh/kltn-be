@@ -1,6 +1,7 @@
 package fit.se.kltn.implement;
 
 
+import fit.se.kltn.services.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -20,12 +21,11 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JwtServiceImpl {
+public class JwtServiceImpl implements JwtService {
 
 
 //    public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
-
-
+    @Override
     public String generateToken(UserDetails userDetails){
         return Jwts.builder().setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -41,6 +41,7 @@ public class JwtServiceImpl {
         byte[] key= Decoders.BASE64.decode("984hg493gh0439rthr0429uruj2309yh937gc763fe87t3f89723gfrtrendthi43uuiti45ii438u434673467537456jh44nnjnj");
         return Keys.hmacShaKeyFor(key);
     }
+    @Override
     public String extractUserName(String token){
         return extractClaim(token,Claims::getSubject);
     }
@@ -51,6 +52,7 @@ public class JwtServiceImpl {
                 .parseClaimsJws(token.replace("{", "").replace("}",""))
                 .getBody();
     }
+    @Override
     public boolean isTokenValid(String token, UserDetails userDetails){
         final String username= extractUserName(token);
         return (username.equals(userDetails.getUsername())&& !isTokenExprired(token));
@@ -59,7 +61,7 @@ public class JwtServiceImpl {
     private boolean isTokenExprired(String token) {
         return extractClaim(token,Claims::getExpiration).before(new Date());
     }
-
+    @Override
     public String generateRefreshToken(Map<String, Object> extractClaims, UserDetails user) {
         return Jwts.builder()
                 .setClaims(extractClaims)

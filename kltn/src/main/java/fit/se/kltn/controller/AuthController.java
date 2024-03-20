@@ -4,6 +4,7 @@ import fit.se.kltn.dto.SignupDto;
 import fit.se.kltn.entities.User;
 import fit.se.kltn.jwt.JwtRequest;
 import fit.se.kltn.jwt.JwtResponse;
+import fit.se.kltn.jwt.RefreshTokenRequest;
 import fit.se.kltn.services.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,8 +30,9 @@ public class AuthController {
     public ResponseEntity<JwtResponse> signin(@RequestBody JwtRequest dto) {
         return ResponseEntity.ok(service.signin(dto));
     }
-    @GetMapping("/")
-    public String test(){
-        return "ok";
+
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtResponse> refresh(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(service.refreshToken(request));
     }
 }
