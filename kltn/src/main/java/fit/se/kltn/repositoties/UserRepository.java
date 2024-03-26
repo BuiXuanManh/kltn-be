@@ -1,5 +1,6 @@
 package fit.se.kltn.repositoties;
 
+import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.User;
 import fit.se.kltn.enums.ERole;
 import org.springframework.data.mongodb.repository.MongoRepository;

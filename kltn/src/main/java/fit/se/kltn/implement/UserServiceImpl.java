@@ -1,5 +1,6 @@
 package fit.se.kltn.implement;
 
+import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.User;
 import fit.se.kltn.repositoties.UserRepository;
 import fit.se.kltn.services.UserService;
@@ -53,7 +54,9 @@ public class UserServiceImpl implements UserService {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                return repository.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("User not found!"));
+                User u = repository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+                UserDto dto= new UserDto(u);
+                return dto;
             }
         };
     }

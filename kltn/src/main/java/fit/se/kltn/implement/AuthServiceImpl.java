@@ -1,6 +1,7 @@
 package fit.se.kltn.implement;
 
 import fit.se.kltn.dto.SignupDto;
+import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.User;
 import fit.se.kltn.enums.ERole;
 import fit.se.kltn.jwt.JwtRequest;
@@ -40,17 +41,16 @@ public class AuthServiceImpl implements AuthService {
         u.setName(dto.getName());
         u.setEmail(dto.getEmail());
         u.setPassword(passwordEncoder.encode(dto.getPassword()));
-        log.info("toi day");
         return repository.save(u);
     }
 
     @Override
     public JwtResponse signin(JwtRequest request){
-        log.info("signin");
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(),request.getPassword()));
         var user = repository.findByUsername(request.getUsername()).orElseThrow(() -> new IllegalArgumentException("invalid username"));
-        var jwt = jwtService.generateToken(user);
-        var refreshToken= jwtService.generateRefreshToken(new HashMap<>(),user);
+        UserDto dto =new UserDto(user);
+        var jwt = jwtService.generateToken(dto);
+        var refreshToken= jwtService.generateRefreshToken(new HashMap<>(),dto);
         JwtResponse response= new JwtResponse();
         response.setAccessToken(jwt);
         response.setRefreshToken(refreshToken);
@@ -61,8 +61,9 @@ public class AuthServiceImpl implements AuthService {
     public JwtResponse refreshToken(RefreshTokenRequest request) {
         String userName= jwtService.extractUserName(request.getToken());
         User user= repository.findByUsername(userName).orElseThrow(()->new UsernameNotFoundException("user is not existed!"));
-        if (jwtService.isTokenValid(request.getToken(),user)){
-            var jwt = jwtService.generateToken(user);
+        UserDto dto= new UserDto(user);
+        if (jwtService.isTokenValid(request.getToken(),dto)){
+            var jwt = jwtService.generateToken(dto);
             JwtResponse response= new JwtResponse();
             response.setAccessToken(jwt);
             response.setRefreshToken(request.getToken());

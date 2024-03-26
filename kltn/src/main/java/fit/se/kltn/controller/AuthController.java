@@ -23,7 +23,6 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<User> signup(@RequestBody SignupDto dto) {
-        log.info("goi abc");
         return ResponseEntity.ok(service.signup(dto));
     }
     @PostMapping("/signin")
