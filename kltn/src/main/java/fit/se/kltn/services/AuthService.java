@@ -12,4 +12,6 @@ public interface AuthService {
     User signup(SignupDto dto);
     JwtResponse signin(JwtRequest request);
     JwtResponse refreshToken(RefreshTokenRequest request);
+    String forgotPassword(String username);
+    String resetPassword(String token, String pass);
 }

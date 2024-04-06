@@ -3,6 +3,7 @@ package fit.se.kltn.dto;
 
 import fit.se.kltn.entities.User;
 import fit.se.kltn.enums.ERole;
+import fit.se.kltn.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,8 @@ public class UserDto implements UserDetails {
     private String email;
     private String password;
     private ERole role;
+    private UserStatus status;
+
 
     public UserDto(User user) {
         this.id = user.getId();
@@ -35,6 +38,7 @@ public class UserDto implements UserDetails {
         this.email=user.getEmail();
         this.role=user.getRole();
         this.password=user.getPassword();
+        this.status=user.getStatus();
     }
 
     @Override
@@ -44,21 +48,21 @@ public class UserDto implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return status.equals(UserStatus.ACTIVE);
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !status.equals(UserStatus.LOOKED);
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return status.equals(UserStatus.ACTIVE);
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return status.equals(UserStatus.ACTIVE);
     }
 }

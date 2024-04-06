@@ -13,4 +13,5 @@ public interface JwtService {
     String generateRefreshToken(Map<String, Object> extractClaims, UserDetails user);
     boolean isTokenValid(String token, UserDetails userDetails);
     String extractUserName(String token);
+    boolean isTokenExprired(String token);
 }

@@ -68,8 +68,8 @@ public class JwtServiceImpl implements JwtService {
         final String username = extractUserName(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExprired(token));
     }
-
-    private boolean isTokenExprired(String token) {
+    @Override
+    public boolean isTokenExprired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 

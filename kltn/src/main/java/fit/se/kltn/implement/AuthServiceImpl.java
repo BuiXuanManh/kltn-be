@@ -4,6 +4,7 @@ import fit.se.kltn.dto.SignupDto;
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.User;
 import fit.se.kltn.enums.ERole;
+import fit.se.kltn.enums.UserStatus;
 import fit.se.kltn.jwt.JwtRequest;
 import fit.se.kltn.jwt.JwtResponse;
 import fit.se.kltn.jwt.RefreshTokenRequest;
@@ -70,6 +71,29 @@ public class AuthServiceImpl implements AuthService {
             return response;
         }
         return null;
+    }
+    @Override
+    public String forgotPassword(String username) {
+        User user = repository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản " + username));
+        if (user.getStatus() == UserStatus.LOOKED) {
+            throw new RuntimeException("Tài khoản " + username + " đã bị khóa.");
+        }
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new RuntimeException("Tài khoản " + user + " không sẵn sàng.");
+        }
+        return "sendCodeSuccess";
+    }
+
+    @Override
+    public String resetPassword(String token, String pass) {
+        if (!jwtService.isTokenExprired(token)) {
+            String username = jwtService.extractUserName(token);
+            User user = repository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user " + username));
+            user.setPassword(passwordEncoder.encode(pass));
+            repository.save(user);
+            return "passUpdateSuccess";
+        }
+        throw new RuntimeException("passUpdateFailed");
     }
 
 }
