@@ -23,7 +23,7 @@ public class RefreshTokenImpl implements RefreshTokenService {
 
     @Override
     public RefreshToken createRefreshToken(String username) {
-        RefreshToken refreshToken = new RefreshToken(UUID.randomUUID().toString(),Instant.now().plusMillis(time),userRepository.findByUsername(username).get());
+        RefreshToken refreshToken = new RefreshToken(UUID.randomUUID().toString(),Instant.now().plusMillis(time),userRepository.findByMssv(username).get());
         return repository.save(refreshToken);
     }
 

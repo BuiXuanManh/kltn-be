@@ -23,7 +23,6 @@ public class Profile {
     private String id;
     private String firstName;
     private String lastName;
-    private String bio;
     private String image;
     private String coverImage;
     private boolean gender;
@@ -40,7 +39,6 @@ public class Profile {
     public Profile(String firstName, String lastName, String bio, String image, String coverImage, boolean gender, LocalDate birthday, User user) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.bio = bio;
         this.image = image;
         this.coverImage = coverImage;
         this.gender = gender;

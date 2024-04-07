@@ -4,6 +4,8 @@ package fit.se.kltn.dto;
 import fit.se.kltn.entities.User;
 import fit.se.kltn.enums.ERole;
 import fit.se.kltn.enums.UserStatus;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,7 +35,7 @@ public class UserDto implements UserDetails {
 
     public UserDto(User user) {
         this.id = user.getId();
-        this.username=user.getUsername();
+        this.username=user.getMssv();
         this.name=user.getName();
         this.email=user.getEmail();
         this.role=user.getRole();

@@ -26,7 +26,7 @@ public class KltnApplication {
 //		return new CommandLineRunner() {
 //			@Override
 //			public void run(String... args) throws Exception {
-//				User u= new User("user12345678","123456", ERole.USER ,UserStatus.ACTIVE);
+//				User u= new User("20103091","Manh@2002", ERole.USER ,UserStatus.ACTIVE);
 //				service.save(u);
 //			}
 //		};

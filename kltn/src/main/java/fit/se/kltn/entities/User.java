@@ -28,7 +28,7 @@ public class User {
     @Id
     private String id;
     @Indexed(unique = true)
-    private String username;
+    private String mssv;
     @Indexed
     private String name;
     @Email
@@ -45,8 +45,8 @@ public class User {
     @DocumentReference
     private List<Book> readingBook;
 
-    public User(String username, String password, ERole role, UserStatus status) {
-        this.username = username;
+    public User(String mssv, String password, ERole role, UserStatus status) {
+        this.mssv = mssv;
         this.password = password;
         this.role = role;
         this.status = status;
@@ -54,7 +54,7 @@ public class User {
 
     public User(UserDto user) {
         this.id = user.getId();
-        this.username=user.getUsername();
+        this.mssv=user.getUsername();
         this.name=user.getName();
         this.email=user.getEmail();
         this.role=user.getRole();

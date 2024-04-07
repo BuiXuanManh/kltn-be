@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findByUserName(String username) {
-        return repository.findByUsername(username);
+        return repository.findByMssv(username);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                User u = repository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+                User u = repository.findByMssv(username).orElseThrow(() -> new UsernameNotFoundException("User not found!"));
                 UserDto dto= new UserDto(u);
                 return dto;
             }
