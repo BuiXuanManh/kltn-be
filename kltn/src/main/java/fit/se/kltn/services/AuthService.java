@@ -1,5 +1,6 @@
 package fit.se.kltn.services;
 
+import fit.se.kltn.dto.ProfileDto;
 import fit.se.kltn.dto.SignupDto;
 import fit.se.kltn.entities.Profile;
 import fit.se.kltn.dto.JwtRequest;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface AuthService {
-    Profile signup(SignupDto dto);
+    ProfileDto signup(SignupDto dto);
     JwtResponse signin(JwtRequest request);
     JwtResponse refreshToken(RefreshTokenRequest request);
     String forgotPassword(String username);

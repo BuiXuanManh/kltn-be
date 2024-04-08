@@ -1,5 +1,6 @@
 package fit.se.kltn.implement;
 
+import fit.se.kltn.dto.ProfileDto;
 import fit.se.kltn.dto.SignupDto;
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.Profile;
@@ -12,8 +13,10 @@ import fit.se.kltn.jwt.RefreshTokenRequest;
 import fit.se.kltn.repositoties.UserRepository;
 import fit.se.kltn.services.AuthService;
 import fit.se.kltn.services.JwtService;
+import fit.se.kltn.services.ProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,17 +38,21 @@ public class AuthServiceImpl implements AuthService {
     private AuthenticationManager authenticationManager;
     @Autowired
     private JwtService jwtService;
+    @Qualifier("profileImpl")
+    @Autowired
+    private ProfileService service;
 
     @Override
-    public Profile signup(SignupDto dto) {
+    public ProfileDto signup(SignupDto dto) {
         Optional<User> opUser = repository.findByMssv(dto.getMssv());
         if (opUser.isEmpty()) {
             User u = new User();
             u.setMssv(dto.getMssv());
             u.setRole(ERole.USER);
-            u.setName(dto.getFirstName() + " " + dto.getFirstName());
+            u.setName(dto.getFirstName() + " " + dto.getLastName());
             u.setEmail(dto.getEmail());
             u.setPassword(passwordEncoder.encode(dto.getPassword()));
+            u.setStatus(UserStatus.ACTIVE);
             User us = repository.save(u);
             Profile p = new Profile();
             p.setBirthday(dto.getBirthday());
@@ -54,7 +61,10 @@ public class AuthServiceImpl implements AuthService {
             p.setLastName(dto.getLastName());
             p.setUpdatedAt(LocalDateTime.now());
             p.setUser(us);
-            return p;
+            p.setCreatedAt(LocalDateTime.now());
+            Profile c = service.save(p);
+            JwtResponse r = signin(new JwtRequest(dto.getMssv(), dto.getPassword()));
+            return new ProfileDto(p, r.getAccessToken(), r.getRefreshToken());
         } else {
             throw new RuntimeException("existedUser");
         }

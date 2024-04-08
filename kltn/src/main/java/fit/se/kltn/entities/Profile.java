@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonIgnoreProperties({"user"})
+//@JsonIgnoreProperties({"user"})
 public class Profile {
     @Id
     private String id;
@@ -33,7 +33,7 @@ public class Profile {
     private LocalDateTime updatedAt;
     @Field("user_id")
     @Indexed(unique = true)
-    @DocumentReference(lazy = true, collection = "users")
+    @DocumentReference(collection = "users")
     private User user;
 
     public Profile(String firstName, String lastName, String bio, String image, String coverImage, boolean gender, LocalDate birthday, User user) {

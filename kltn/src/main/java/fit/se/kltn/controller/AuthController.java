@@ -1,10 +1,7 @@
 package fit.se.kltn.controller;
 
-import fit.se.kltn.dto.ResetPassDto;
-import fit.se.kltn.dto.SignupDto;
-import fit.se.kltn.dto.UsernameDto;
+import fit.se.kltn.dto.*;
 import fit.se.kltn.entities.Profile;
-import fit.se.kltn.dto.JwtRequest;
 import fit.se.kltn.jwt.JwtResponse;
 import fit.se.kltn.jwt.RefreshTokenRequest;
 import fit.se.kltn.services.AuthService;
@@ -25,7 +22,7 @@ public class AuthController {
     private AuthService service;
 
     @PostMapping("/signup")
-    public ResponseEntity<Profile> signup(@RequestBody @Valid SignupDto dto) {
+    public ResponseEntity<ProfileDto> signup(@RequestBody @Valid SignupDto dto) {
         return ResponseEntity.ok(service.signup(dto));
     }
     @PostMapping("/signin")

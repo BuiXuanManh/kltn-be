@@ -13,12 +13,13 @@ public class SignupDto {
     @Pattern(regexp = "^\\d{8}$", message = "Mã số sinh viên phải gồm 8 số")
     private String mssv;
     @NotNull(message = "Họ đệm là bắt buộc")
-    @Pattern(regexp = "^[a-zA-Z]{2,}$", message = "Tên phải có 2 ký tự trở lên")
+    @Pattern(regexp = "^([A-ZÀÁẢẠÃĂẰẮẲẶẴÂẦẤẨẬẪĐEÈÉẺẸẼÊỀẾỂỆỄIÌÍỈỊĨOÒÓỎỌÕÔỒỐỔỘỖƠỜỚỞỢỠUÙÚỦỤŨƯỪỨỬỰỮYỲÝỶỴỸa-zàáảạãăằắẳặẵâầấẩậẫđeèéẻẹẽêềếểệễiìíỉịĩoòóỏọõôồốổộỗơờớởợỡuùúủụũưừứửựữyỳýỷỵỹ\\s?])+$", message = "Tên phải có 2 ký tự trở lên")
     private String firstName;
     @NotNull(message = "Tên là bắt buộc")
-    @Pattern(regexp = "^[a-zA-Z]{2,}$", message = "Tên phải có 2 ký tự trở lên")
+    @Pattern(regexp = "^([A-ZÀÁẢẠÃĂẰẮẲẶẴÂẦẤẨẬẪĐEÈÉẺẸẼÊỀẾỂỆỄIÌÍỈỊĨOÒÓỎỌÕÔỒỐỔỘỖƠỜỚỞỢỠUÙÚỦỤŨƯỪỨỬỰỮYỲÝỶỴỸa-zàáảạãăằắẳặẵâầấẩậẫđeèéẻẹẽêềếểệễiìíỉịĩoòóỏọõôồốổộỗơờớởợỡuùúủụũưừứửựữyỳýỷỵỹ\\s?])+$", message = "Tên phải có 2 ký tự trở lên")
     private String lastName;
     @Email(message = "phải đúng định dạng email")
+    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",message = "phải đúng định dạng email")
     @NotNull(message = "email là bắt buộc")
     private String email;
     @NotNull(message = "password là bắt buộc")
