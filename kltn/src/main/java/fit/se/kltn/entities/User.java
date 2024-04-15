@@ -44,31 +44,31 @@ public class User {
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Book> readingBook;
+    private List<Book> readingBook;
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Book> likeBook;
+    private List<Book> likeBook;
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Book> saveBook;
+    private List<Book> saveBook;
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Book> nominateBook;
+    private List<Book> nominateBook;
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Book> readBook;
+    private List<Book> readBook;
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Comment> comments;
+    private List<Comment> comments;
     @JsonIgnore
     @ToString.Exclude
     @DocumentReference
-    private Set<Rate> rates;
+    private List<Rate> rates;
 
     public User(String mssv, String password, ERole role, UserStatus status) {
         this.mssv = mssv;

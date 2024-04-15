@@ -1,6 +1,7 @@
 package fit.se.kltn.services;
 
 import fit.se.kltn.entities.Book;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,4 +13,5 @@ public interface BookService {
     List<Book> findAll();
     Optional<Book> findById(String id);
     Optional<Book> findByISBN(String isbn);
+    Page<Book> findPage(int pageNo, int pageSize, String sortBy, String sortDerection);
 }

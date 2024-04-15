@@ -28,8 +28,10 @@ public class KltnApplication {
 //			public void run(String... args) throws Exception {
 //				User u= new User("20103091","Manh@2002", ERole.USER ,UserStatus.ACTIVE);
 //				service.save(u);
+//
 //			}
 //		};
 //	}
+
 
 }
