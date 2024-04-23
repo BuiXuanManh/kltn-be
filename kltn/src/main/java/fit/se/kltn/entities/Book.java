@@ -29,6 +29,7 @@ public class Book {
     @LastModifiedDate
     private LocalDate uploadDate;
     private String image;
+    private String bgImage;
     private String shortDescription;
     private String longDescription;
     private String status;
