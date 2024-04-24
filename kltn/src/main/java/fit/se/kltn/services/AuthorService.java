@@ -11,4 +11,5 @@ public interface AuthorService {
     List<Author> getAll();
     Optional<Author> findById(String id);
     Optional<Author> findByName(String name);
+    Author save(Author save);
 }

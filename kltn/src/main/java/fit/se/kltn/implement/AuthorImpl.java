@@ -26,4 +26,9 @@ public class AuthorImpl implements AuthorService {
     public Optional<Author> findByName(String name) {
         return repository.findByName(name);
     }
+
+    @Override
+    public Author save(Author save) {
+        return repository.save(save);
+    }
 }

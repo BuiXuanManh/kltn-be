@@ -19,7 +19,15 @@ public class PageBook {
     private String name;
     @Indexed
     private int pageNo;
-    @DocumentReference
+    private String content;
+    @DocumentReference(lazy = true)
     @Field("book_id")
     private Book book;
+
+    public PageBook(String name, int pageNo, String content, Book book) {
+        this.name = name;
+        this.pageNo = pageNo;
+        this.content = content;
+        this.book = book;
+    }
 }

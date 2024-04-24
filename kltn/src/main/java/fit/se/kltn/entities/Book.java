@@ -1,5 +1,7 @@
 package fit.se.kltn.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import fit.se.kltn.enums.BookStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,10 +34,12 @@ public class Book {
     private String bgImage;
     private String shortDescription;
     private String longDescription;
-    private String status;
-    private List<String> authors;
-    private List<String> genres;
-    private List<String> categories;
+    private BookStatus status;
+    private List<Author> authors;
+    private List<Genre> genres;
+    private List<String> keywords;
     private String content;
+    @JsonIgnore
     private List<PageBook> pages;
+
 }
