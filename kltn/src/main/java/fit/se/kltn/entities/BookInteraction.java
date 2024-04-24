@@ -18,7 +18,7 @@ public class BookInteraction {
     private Book book;
     @DocumentReference(lazy = true)
     @Field("profile_id")
-    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+//    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     private Profile profile;
     private boolean like;
     private boolean share;

@@ -17,7 +17,6 @@ import java.util.List;
 @Document(collection = "books")
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class Book {
     @Id
     @Indexed
@@ -41,5 +40,8 @@ public class Book {
     private String content;
     @JsonIgnore
     private List<PageBook> pages;
+    public Book(){
+        this.pageCount=pages!=null?pages.size():0;
+    }
 
 }

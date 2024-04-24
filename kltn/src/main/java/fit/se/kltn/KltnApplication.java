@@ -38,30 +38,50 @@ public class KltnApplication {
 //		};
 //	}
 
-    @Autowired
-    private GenreService genreService;
-    @Autowired
-    private AuthorService authorService;
-    @Autowired
-    private PageService pageService;
-    @Autowired
-    private BookService bookService;
+//    @Autowired
+//    private GenreService genreService;
+//    @Autowired
+//    private AuthorService authorService;
+//    @Autowired
+//    private PageService pageService;
+//    @Autowired
+//    private BookService bookService;
 
 //    @Bean
-    CommandLineRunner init() {
-        return new CommandLineRunner() {
-            @Override
-            public void run(String... args) throws Exception {
-                Book b = bookService.findById("6602da6d23a4f271fe9056f7").get();
-                PageBook pageBook = new PageBook("", 1, "", b);
-                PageBook pageBook2 = new PageBook("", 2, "", b);
-                PageBook p1 = pageService.save(pageBook);
-                PageBook p2 = pageService.save(pageBook2);
-                b.setPages(List.of(p1, p2));
-                bookService.save(b);
-            }
-        };
-    }
+//    CommandLineRunner init() {
+//        return new CommandLineRunner() {
+//            @Override
+//            public void run(String... args) throws Exception {
+//                Book b = bookService.findById("6602df4923a4f271fe9056ff").get();
+//                PageBook pageBook= new PageBook("",1,"Tác phẩm tập trung vào nhân vật trung tâm Rodion Romanovich Raskolnikov, một sinh viên trường luật ở Saint Petersburg. Raskolnikov xuất thân từ một gia đình nghèo ở nông thôn, người mẹ không đủ điều kiện nuôi anh ăn học đến ngày thành đạt, cô em gái Dunhia giàu lòng hy sinh phải làm gia sư cho gia đình lão địa chủ quý tộc dâm dục Arkady Ivanovich Svidrigailov để nuôi anh. Nhưng vốn là một cô gái thông minh, giàu tự trọng, Dunhia bỏ việc dạy học vì bị lão địa chủ Svidrigailov ve vãn hòng chiếm đoạt, mặc dù lão đã có vợ con. Đời sống gia đình ngày càng khó khăn khiến Raskolnikov phải bỏ học giữa chừng. Trong hoàn cảnh khó khăn như vậy, một người mối lái đưa Pyotr Petrovich Luzhin (Luzhin), một viên quan cao cấp ngành Toà án ở Thủ đô đến gặp Dunhia hỏi vợ.\n" +
+//                        "\n" +
+//                        "Do đời sống thiếu thốn, hàng ngày chứng kiến nơi cái xóm trọ toàn dân nghèo với bao cảnh đời lầm than, cùng quẫn, lại bị tiêm nhiễm bởi triết lý người hùng khi mơ tưởng một ngày sẽ được như Napoléon Bonaparte, Raskolnikov tự coi mình là phi thường, thường xuyên khép kín lòng mình, bơi mải miết trong những suy tư đơn độc, nung nấu những căm uất về tình trạng bất công, phi nghĩa của xã hội và tìm kiếm lối thoát bằng sức lực của cá nhân mình. Những lý do đó đã khiến chàng, trong một lần nọ, đã quyết định đến nhà mụ cầm đồ Alyona Ivanovna giàu nứt đố đổ vách, lạnh lùng lấy búa bổ vỡ đầu mụ và cướp tiền bạc, châu báu. Sau khi mở được két tiền, quay ra chàng gặp ngay em gái mụ cầm đồ, Elizabet. Vì quá hốt hoảng Raskolnikov vung rìu đập chết luôn ả. Trốn khỏi căn nhà mụ cầm đồ, chàng giấu kín gói đồ cướp được dưới một tảng đá và không dám tiêu một đồng mặc dù không còn một xu dính túi. Sau vụ giết người khủng khiếp đó, dù chưa bị phát hiện, lương tâm của Raskolnikov vẫn bị dày vò triền miên. Chàng như người mất hồn tâm thần hoảng loạn, đêm nằm mê sảng vật vã, ngày đi lang thang vơ vẩn.\n" +
+//                        "\n" +
+//                        "Trong một hôm uống rượu giải khuây, trong quán tình cờ Raskolnikov tâm sự với một bác công nhân già nát rượu Semyon Zakharovich Marmeladov và biết được Sonya, con gái bác phải bán thân để nuôi cả cha, mẹ kế và các em trong khung cảnh đói rét và bệnh tật. Raskolnikov đã đến với Sonya để rồi tình cảm giữa chàng và Sonya ngày càng gắn bó.\n" +
+//                        "\n" +
+//                        "Trong lúc đó, Dunhia tuy chưa rõ Luzhin là kẻ tốt hay xấu, nhưng cả mẹ và nàng đều tìm thấy ở con người có thế lực giàu sang này chỗ dựa chắc chắn về kinh tế, không chỉ giúp gia đình mà cả con đường công danh của Raskolnikov về sau. Thương anh và thương mẹ, Dunhia đã nhận lời đính hôn với Luzhin, người có thể trở thành chỗ dựa kinh tế cho gia đình nàng, đồng ý cùng mẹ về sống ở thủ đô để chuẩn bị lễ cưới. Biết chuyện Raskolnikov ra sức chống lại đám cưới của Dunhia và Luzhin, vì chàng hiểu rõ bản chất đồi bại bỉ ổi của kẻ tai to mặt lớn này trong giai đoạn chàng còn ở St. Petersburg. Chàng cho rằng nếu để em gái Dunhia cưới Luzhin thì không khác nào đồng ý cho Dunhia đi làm gái mại dâm như số phận của Sonya. Như vậy là phạm tội ác đến hai lần, không chỉ giết chết nhân phẩm của Dunhia mà còn giết chết cả nhân phẩm của chính mình. Raskolnikov đã không ngần ngại đuổi Luzhin ra khỏi nhà ngay trước mặt mẹ và em gái.\n" +
+//                        "\n" +
+//                        "Đang đi lang thang trên phố, thấy bác công nhân Marmeladov nát rượu bị xe ngựa cán ngã lăn ra đường mê man bất tỉnh, Raskonikov đã vội vàng đưa bác về nhà, rồi tự tay bỏ tiền ra lo việc ma chay cho gia đình của Sonya. Từ đó tình yêu giữa chàng và Sonya ngày càng thắm thiết.",b);
+//                PageBook pageBook2= new PageBook("",2,"Luzhin, với bản chất xấu xa của hắn, không quên mối nhục và tìm cách trả thù Raskolnikov. Nhân lúc nhà Sonya có tang, hắn giả vờ xót thương gọi Sonya tới nhà mình và cho nàng 10 ruble nhưng lại lén bỏ vào trong túi nàng một tờ 100 ruble. Sau đó, hắn đến đám tang, đột ngột bước vào không thèm chào hỏi ai và đến trước mặt bà mẹ góa kêu ầm lên là mất tờ 100 ruble hắn để trên bàn vào lúc Sonya tới nhà hắn. Hắn cả quyết rằng chỉ có Sonya lấy cắp, đòi khám áo Sonya và thấy quả là từ đáy túi áo ngoài của nàng rơi ra một tờ giấy 100 ruble được gấp làm tám. Luzhin la toáng lên yêu cầu gọi cảnh sát đến bắt Sonya. Mục đích của hắn nhằm bôi xấu Raskolnikov và cứu vãn danh dự của bản thân: sở dĩ hắn không kết hôn được với Dunhia bởi ông anh trai nàng có người tình là kẻ ăn cắp. Nhưng trong lúc hắn đang hí hửng vì hạ nhục được Raskolnikov trước đông đảo mọi người, thì bạn của hắn, trước đó vô tình đứng ngoài cửa đã chứng kiến Luzhin bỏ tờ giấy bạc 100 ruble vào túi Sonya, tưởng Luzhin cho tiền để giúp đỡ Sonya. Anh bạn đã vạch mặt trò bịp này của Luzhin và không thể chối cãi, Luzhin bẽ mặt lủi thủi ra về.\n" +
+//                        "\n" +
+//                        "Raskolnikov vẫn triền miên trong nỗi ân hận dày vò vì đã giết người cướp của. Tâm trí chàng luôn căng thẳng, vừa vì sự lẩn tránh tội lỗi, vừa vì những dằn vặt ám ảnh của bản thân khiến toàn thân chàng nhiều lúc rã rời, đầu óc muốn nổ tung, và đã tâm sự với Sonya rằng anh giết người bởi muốn trở thành một Napoléon Bonaparte (?). Trong một lần tự đối thoại với chính mình, chàng đã liên tục tự hỏi \"ta là con sâu con bọ run rẩy hay ta có quyền lực?\", và khi hiểu ra phần nào chàng đã thốt lên \"ta đã giết không phải một con người, ta đã giết một nguyên lý\". Với chàng lúc này hình phạt ghê gớm nhất không phải là tù đày mà là nỗi nhức nhối dai dẳng vì đã giết chết nhân phẩm của mình và cắt đứt quan hệ với những người thân thiết.\n" +
+//                        "\n" +
+//                        "Dunhia hết sức đau khổ vì sự cùng quẫn của anh trai nhưng vẫn không thể tìm lối thoát. Trong lúc đó lão địa chủ Svidrigailov vẫn không từ bỏ ý định theo đuổi nàng, thậm chí hắn đã giết cả vợ. Song hắn không thể chinh phục nổi người con gái trong sáng và nghị lực ấy. Vốn là kẻ giàu có lại sống trụy lạc, hắn định kết hôn với một cô gái rất trẻ, con một quý tộc bị phá sản đang cần nơi nương tựa. Nhưng rồi trong một cơn khủng hoảng, bất ngờ hắn đã rút súng lục tự tử ngay gần bốt cảnh sát, để lại một bức thư tuyệt mệnh xác nhận rằng hắn tự tìm đến cái chết. Trước đó hắn đã vĩnh biệt Sonya, người sống cạnh buồng trọ của hắn, và tặng nàng số tiền 3000 ruble để giúp đỡ gia đình nàng sinh sống. Còn Raskolnikov sau chín tháng dằn vặt đã đến tòa tự thú. Xét thấy thần kinh của chàng không ổn định, trước vành móng ngựa tòa miễn tội chết cho Raskolnikov và đày chàng biệt xứ ở Siberia trong 8 năm khổ sai. Sonya, người con gái đau khổ với trái tim tràn ngập bác ái đã tự nguyện gắn bó đời mình với người yêu nơi đày ải khắc nghiệt ấy.",b);
+//                PageBook pageBook2= new PageBook("",1,"",b);
+//                PageBook p1 = pageService.save(pageBook);
+//                PageBook p2 = pageService.save(pageBook2);
+//                PageBook p3 = pageService.save(pageBook3);
+//                PageBook p4 = pageService.save(pageBook4);
+//                PageBook p5 = pageService.save(pageBook5);
+//                PageBook p6 = pageService.save(pageBook6);
+//                PageBook p7 = pageService.save(pageBook7);
+//                PageBook p8 = pageService.save(pageBook8);
+//                b.setPages(List.of(p1, p2));
+//                bookService.save(b);
+//            }
+//        };
+//    }
+
 //        @Bean
 //    CommandLineRunner init() {
 //        return new CommandLineRunner() {

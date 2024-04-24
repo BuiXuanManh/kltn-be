@@ -81,4 +81,23 @@ public class BookController {
         service.save(bb);
         return pageBook;
     }
+    @GetMapping("/pages/{id}/{pageNo}")
+    @Operation(summary = "Tìm trang theo book Id và số trang")
+    public PageBook findByPageNo(@PathVariable("pageNo") int pageNo, @PathVariable("id") String id){
+        Optional<Book> b = service.findById(id);
+        if(b.isEmpty()){
+            throw new RuntimeException("không tìm thấy book có id: "+id);
+        }
+        Book bp = b.get();
+        List<PageBook> pages= bp.getPages();
+        if(pageNo<=0|| pageNo>pages.size()){
+            throw new RuntimeException("Không tìm thấy số trang: "+pageNo);
+        }
+        for(PageBook pageBook : pages){
+            if(pageBook.getPageNo()==pageNo){
+                return pageBook;
+            }
+        }
+        throw new RuntimeException("Error");
+    }
 }

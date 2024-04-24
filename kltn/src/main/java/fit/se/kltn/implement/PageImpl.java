@@ -27,4 +27,9 @@ public class PageImpl implements PageService  {
     public PageBook save(PageBook pageBook) {
         return repository.save(pageBook);
     }
+
+    @Override
+    public Optional<PageBook> findByPageNo(int pageNo) {
+        return repository.findByPageNo(pageNo);
+    }
 }

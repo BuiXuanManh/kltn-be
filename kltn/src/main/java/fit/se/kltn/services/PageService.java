@@ -11,4 +11,5 @@ public interface PageService {
     List<PageBook> getPages();
     Optional<PageBook> findById(String id);
     PageBook save(PageBook pageBook);
+    Optional<PageBook> findByPageNo(int pageNo);
 }
