@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "profiles")
 @Data
@@ -35,6 +36,7 @@ public class Profile {
     @Indexed(unique = true)
     @DocumentReference(collection = "users")
     private User user;
+    private List<BookInteraction> interactions;
 
     public Profile(String firstName, String lastName, String bio, String image, String coverImage, boolean gender, LocalDate birthday, User user) {
         this.firstName = firstName;

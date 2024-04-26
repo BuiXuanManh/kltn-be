@@ -1,9 +1,13 @@
 package fit.se.kltn.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -13,16 +17,28 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookInteraction {
+    @Id
     private String id;
     @DocumentReference(lazy = true)
+    @Field("book_id")
+    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    @ToString.Include
     private Book book;
     @DocumentReference(lazy = true)
     @Field("profile_id")
-//    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    @ToString.Include
     private Profile profile;
     private boolean like;
     private boolean share;
     private boolean read;
     private boolean save;
     private boolean newBook;
+    private int readCount;
+
+    public BookInteraction(Book book, Profile profile, int readCount) {
+        this.book = book;
+        this.profile = profile;
+        this.readCount = readCount;
+    }
 }

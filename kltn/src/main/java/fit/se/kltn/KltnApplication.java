@@ -23,20 +23,47 @@ public class KltnApplication {
         SpringApplication.run(KltnApplication.class, args);
     }
 
-    //	@Qualifier("userServiceImpl")
+//        	@Qualifier("userServiceImpl")
 //	@Autowired
 //	private UserService service;
-//	@Bean
-//	CommandLineRunner init(){
-//		return new CommandLineRunner() {
-//			@Override
-//			public void run(String... args) throws Exception {
-//				User u= new User("20103091","Manh@2002", ERole.USER ,UserStatus.ACTIVE);
-//				service.save(u);
+//    @Autowired
+//    private ProfileService profileService;
+//    @Autowired
+//    private BookService bookService;
+//    @Qualifier("bookInteractionImpl")
+//    @Autowired
+//    private BookInteractionService interactionService;
 //
-//			}
-//		};
-//	}
+//    	@Bean
+//    CommandLineRunner init() {
+//        return new CommandLineRunner() {
+//            @Override
+//            public void run(String... args) throws Exception {
+//                Profile p = profileService.findById("6613fa53dba2361c3d3eb049").get();
+//                Book b= bookService.findById("6602da6d23a4f271fe9056f7").get();
+//                Book b2= bookService.findById("6602daa923a4f271fe9056f9").get();
+//                Book b3= bookService.findById("6602db1e23a4f271fe9056fd").get();
+//
+//                BookInteraction bi1= new BookInteraction(b,p,2);
+//
+//                BookInteraction bi2= new BookInteraction(b2,p,2);
+//                BookInteraction bi3= new BookInteraction(b3,p,3);
+//                BookInteraction in = interactionService.save(bi1);
+//                BookInteraction in2=interactionService.save(bi2);
+//                BookInteraction in3=interactionService.save(bi3);
+////                List<BookInteraction> l= interactionService.findAll();
+//                b.setInteractions(List.of(in));
+//                b2.setInteractions(List.of(in2));
+//                b3.setInteractions(List.of(in3));
+//                bookService.save(b);
+//                bookService.save(b2);
+//                bookService.save(b3);
+//
+//                p.setInteractions(List.of(in,in2,in3));
+//                profileService.save(p);
+//            }
+//        };
+//    }
 
 //    @Autowired
 //    private GenreService genreService;
@@ -44,8 +71,7 @@ public class KltnApplication {
 //    private AuthorService authorService;
 //    @Autowired
 //    private PageService pageService;
-//    @Autowired
-//    private BookService bookService;
+
 
 //    @Bean
 //    CommandLineRunner init() {

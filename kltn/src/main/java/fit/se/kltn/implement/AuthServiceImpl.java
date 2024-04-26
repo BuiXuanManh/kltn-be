@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
             p.setCreatedAt(LocalDateTime.now());
             Profile c = service.save(p);
             JwtResponse r = signin(new JwtRequest(dto.getMssv(), dto.getPassword()));
-            return new ProfileDto(p, r.getAccessToken(), r.getRefreshToken());
+            return new ProfileDto(c, r.getAccessToken(), r.getRefreshToken());
         } else {
             throw new RuntimeException("existedUser");
         }

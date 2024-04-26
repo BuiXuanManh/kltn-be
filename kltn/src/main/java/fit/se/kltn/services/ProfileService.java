@@ -12,6 +12,6 @@ public interface ProfileService {
     Optional<Profile> findById(String id);
     Optional<Profile> findByLastName(String lastName);
     Optional<Profile> findByFirstName(String firstName);
-    Optional<Profile> findByMssv(String mssv);
+    Optional<Profile> findByUserId(String mssv);
     Profile save(Profile profile);
 }

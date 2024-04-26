@@ -34,8 +34,8 @@ public class ProfileImpl implements ProfileService {
     }
 
     @Override
-    public Optional<Profile> findByMssv(String mssv) {
-        return repository.findByUserMssv(mssv);
+    public Optional<Profile> findByUserId(String id) {
+        return repository.findByUserId(id);
     }
 
     @Override

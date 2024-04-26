@@ -5,6 +5,7 @@ import fit.se.kltn.enums.BookStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -19,7 +20,6 @@ import java.util.List;
 @AllArgsConstructor
 public class Book {
     @Id
-    @Indexed
     private String id;
     private String isbn;
     @Indexed
@@ -34,10 +34,13 @@ public class Book {
     private String shortDescription;
     private String longDescription;
     private BookStatus status;
+    @ToString.Include
     private List<Author> authors;
+    @ToString.Include
     private List<Genre> genres;
     private List<String> keywords;
-    private String content;
+    @ToString.Include
+    private List<BookInteraction> interactions;
     @JsonIgnore
     private List<PageBook> pages;
     public Book(){

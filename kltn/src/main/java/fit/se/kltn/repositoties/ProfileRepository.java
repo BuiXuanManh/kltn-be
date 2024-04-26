@@ -12,6 +12,6 @@ public interface ProfileRepository extends MongoRepository<Profile,String> {
     Optional<Profile> findByFirstName(String firstName);
     Optional<Profile> findByLastName(String lastName);
     @Query("{'user.id': ?0}")
-    Optional<Profile> findByUserMssv(String mssv);
+    Optional<Profile> findByUserId(String id);
 
 }
