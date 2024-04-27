@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Document(collection = "books")
@@ -26,10 +27,12 @@ public class Book {
     private String title;
     private int pageCount;
     @CreatedDate
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     @LastModifiedDate
-    private LocalDate uploadDate;
+    private LocalDateTime updateDate;
+    @Indexed
     private String image;
+    @Indexed
     private String bgImage;
     private String shortDescription;
     private String longDescription;
@@ -38,9 +41,6 @@ public class Book {
     private List<Author> authors;
     @ToString.Include
     private List<Genre> genres;
-    private List<String> keywords;
-    @ToString.Include
-    private List<BookInteraction> interactions;
     @JsonIgnore
     private List<PageBook> pages;
     public Book(){

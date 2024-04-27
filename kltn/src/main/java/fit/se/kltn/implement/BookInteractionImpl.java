@@ -31,6 +31,16 @@ public class BookInteractionImpl implements BookInteractionService {
 
     @Override
     public Optional<BookInteraction> getBookInteraction(String bookId, String profileId) {
-        return repository.getBookInteraction(bookId, profileId);
+        return repository.findByBook_IdAndProfile_Id(bookId, profileId);
+    }
+
+    @Override
+    public List<BookInteraction> findByBookId(String bookId) {
+        return repository.findByBook_Id(bookId);
+    }
+
+    @Override
+    public List<BookInteraction> findByProfileId(String profileId) {
+        return repository.findByProfile_Id(profileId);
     }
 }

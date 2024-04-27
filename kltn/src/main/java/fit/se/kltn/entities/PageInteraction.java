@@ -1,6 +1,6 @@
 package fit.se.kltn.entities;
 
-import fit.se.kltn.enums.RateType;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,23 +14,29 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Document(collection = "comments")
+@Document("page_interactions")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Comment {
+public class PageInteraction {
     @Id
     private String id;
-    private String content;
-    @Indexed
-    private LocalDateTime createDate;
-    @Field("parent_id")
-    @DocumentReference(lazy = true)
-    private Comment parent;
+    @Field("page_id")
     @DocumentReference(lazy = true)
     @ToString.Include
-    private List<Report> reports;
+    private PageBook pageBook;
+    @DocumentReference(lazy = true)
+    @Field("profile_id")
+    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    @ToString.Include
+    private Profile profile;
     @Indexed
-    private Double rate;
-    private RateType type;
+    private LocalDateTime readTime;
+    private boolean like;
+    private boolean share;
+    private boolean read;
+    private boolean save;
+    private boolean mark;
+    @DocumentReference(lazy = true)
+    private List<Comment> comments;
 }

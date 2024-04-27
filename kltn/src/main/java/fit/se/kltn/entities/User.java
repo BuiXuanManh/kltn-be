@@ -41,34 +41,6 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updateAt;
     private UserStatus status;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Book> readingBook;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Book> likeBook;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Book> saveBook;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Book> nominateBook;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Book> readBook;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Comment> comments;
-    @JsonIgnore
-    @ToString.Exclude
-    @DocumentReference
-    private List<Rate> rates;
 
     public User(String mssv, String password, ERole role, UserStatus status) {
         this.mssv = mssv;

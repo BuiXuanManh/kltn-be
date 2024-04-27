@@ -3,27 +3,23 @@ package fit.se.kltn.entities;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.time.LocalDateTime;
+@Document(collection = "reports")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "rates")
-public class Rate {
+public class Report {
     @Id
     private String id;
-    private Double rate;
-    @Indexed
-    @CreatedDate
-    private LocalDateTime uploadDate;
-    @Field("book_id")
-    @Indexed(unique = true)
-    @DocumentReference(collection = "books")
-    private Book book;
+    @DocumentReference(lazy = true)
+    @Field("comment_id")
+    private Comment comment;
+    @DocumentReference(lazy = true)
+    @Field("profile_id")
+    private Profile profile;
+    private String content;
 }

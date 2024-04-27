@@ -15,4 +15,6 @@ public interface BookInteractionService {
     Optional<BookInteraction> findById(String id);
 
     Optional<BookInteraction> getBookInteraction(String bookId, String profileId);
+    List<BookInteraction> findByBookId(String bookId);
+    List<BookInteraction> findByProfileId(String profileId);
 }

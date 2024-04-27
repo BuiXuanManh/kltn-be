@@ -13,6 +13,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,9 +25,9 @@ public class KltnApplication {
         SpringApplication.run(KltnApplication.class, args);
     }
 
-//        	@Qualifier("userServiceImpl")
-//	@Autowired
-//	private UserService service;
+//    @Qualifier("userServiceImpl")
+//    @Autowired
+//    private UserService service;
 //    @Autowired
 //    private ProfileService profileService;
 //    @Autowired
@@ -33,6 +35,26 @@ public class KltnApplication {
 //    @Qualifier("bookInteractionImpl")
 //    @Autowired
 //    private BookInteractionService interactionService;
+
+    //    @Bean
+    CommandLineRunner init() {
+        return new CommandLineRunner() {
+            @Override
+            public void run(String... args) throws Exception {
+//                Book b= bookService.findById("6602da6d23a4f271fe9056f7").get();
+//                Book b2= bookService.findById("6602da7523a4f271fe9056f8").get();
+//                Book b3= bookService.findById("6602daa923a4f271fe9056f9").get();
+//                Book b4= bookService.findById("6602dac223a4f271fe9056fa").get();
+//                Book b5= bookService.findById("6602dae623a4f271fe9056fc").get();
+//                Book b6= bookService.findById("6602db1e23a4f271fe9056fd").get();
+//                Book b7= bookService.findById("6602dcbb23a4f271fe9056fe").get();
+//                Book b8= bookService.findById("6602df4923a4f271fe9056ff").get();
+//                b8.setCreatedAt(LocalDateTime.now());
+//                b8.setUpdateDate(LocalDateTime.now());
+//                bookService.save(b8);
+            }
+        };
+    }
 //
 //    	@Bean
 //    CommandLineRunner init() {

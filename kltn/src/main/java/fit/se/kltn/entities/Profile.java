@@ -22,9 +22,12 @@ import java.util.List;
 public class Profile {
     @Id
     private String id;
+    @Indexed
     private String firstName;
     private String lastName;
+    @Indexed
     private String image;
+    @Indexed
     private String coverImage;
     private boolean gender;
     private LocalDate birthday;
@@ -34,9 +37,8 @@ public class Profile {
     private LocalDateTime updatedAt;
     @Field("user_id")
     @Indexed(unique = true)
-    @DocumentReference(collection = "users")
+    @DocumentReference(lazy = true)
     private User user;
-    private List<BookInteraction> interactions;
 
     public Profile(String firstName, String lastName, String bio, String image, String coverImage, boolean gender, LocalDate birthday, User user) {
         this.firstName = firstName;

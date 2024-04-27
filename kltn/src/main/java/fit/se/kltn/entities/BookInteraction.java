@@ -12,6 +12,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Document(collection = "book_interactions")
 @Data
 @AllArgsConstructor
@@ -29,11 +32,9 @@ public class BookInteraction {
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     @ToString.Include
     private Profile profile;
-    private boolean like;
-    private boolean share;
-    private boolean read;
-    private boolean save;
-    private boolean newBook;
+    private boolean followed;
+    private boolean nominated;
+    private LocalDateTime nominalTime;
     private int readCount;
 
     public BookInteraction(Book book, Profile profile, int readCount) {

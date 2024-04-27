@@ -26,11 +26,4 @@ public class CommentImpl implements CommentService {
     public Comment save(Comment comment) {
         return repository.save(comment);
     }
-
-    @Override
-    public Comment delete(Comment comment) {
-        comment.setUnSend(true);
-        repository.save(comment);
-        return comment;
-    }
 }
