@@ -1,5 +1,6 @@
 package fit.se.kltn.entities;
 
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import fit.se.kltn.enums.RateType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,14 +24,20 @@ public class Comment {
     private String id;
     private String content;
     @Indexed
-    private LocalDateTime createDate;
+    private LocalDateTime createAt;
     @Field("parent_id")
     @DocumentReference(lazy = true)
     private Comment parent;
-    @DocumentReference(lazy = true)
-    @ToString.Include
-    private List<Report> reports;
     @Indexed
     private Double rate;
     private RateType type;
+    @Field("profile_id")
+    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    private Profile profile;
+    @Field("page_id")
+    @DocumentReference(lazy = true)
+    private PageBook pageBook;
+    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    @DocumentReference(lazy = true)
+    private List<Profile> liker;
 }

@@ -1,29 +1,27 @@
 package fit.se.kltn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-@Document(collection = "reports")
+@Document(collection = "ratePages")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Report {
+public class RatePage {
     @Id
-    @Indexed
     private String id;
-    private String title;
-    @Field("comment_id")
-    @JsonIncludeProperties({"id","content","createAt","type","rate"})
-    private Comment comment;
-    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     @Field("profile_id")
+    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    @DocumentReference(lazy = true)
     private Profile profile;
-    private String content;
+    @Min(0) @Max(5)
+    private Double rate;
 }

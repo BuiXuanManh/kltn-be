@@ -11,4 +11,5 @@ public interface CommentService {
     List<Comment> findAll();
     Optional<Comment> findById(String id);
     Comment save(Comment comment);
+    List<Comment> findByPageId(String pageId);
 }

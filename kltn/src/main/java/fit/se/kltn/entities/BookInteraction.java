@@ -22,18 +22,17 @@ import java.time.LocalDateTime;
 public class BookInteraction {
     @Id
     private String id;
-    @DocumentReference(lazy = true)
     @Field("book_id")
     @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
-    @ToString.Include
-    private Book book;
     @DocumentReference(lazy = true)
+    private Book book;
     @Field("profile_id")
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
-    @ToString.Include
+    @DocumentReference(lazy = true)
     private Profile profile;
     private boolean followed;
     private boolean nominated;
+    @Indexed
     private LocalDateTime nominalTime;
     private int readCount;
 

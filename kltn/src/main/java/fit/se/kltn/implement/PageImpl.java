@@ -29,7 +29,7 @@ public class PageImpl implements PageService  {
     }
 
     @Override
-    public Optional<PageBook> findByPageNo(int pageNo) {
-        return repository.findByPageNo(pageNo);
+    public List<PageBook> findByBookId(String id) {
+        return repository.findByBook_Id(id);
     }
 }

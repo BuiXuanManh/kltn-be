@@ -17,8 +17,4 @@ public class Author {
     private String id;
     @Indexed
     private String name;
-
-    public Author(String name) {
-        this.name = name;
-    }
 }

@@ -1,12 +1,10 @@
 package fit.se.kltn.controller;
 
 import fit.se.kltn.dto.BookPageDto;
-import fit.se.kltn.entities.Book;
-import fit.se.kltn.entities.Genre;
-import fit.se.kltn.entities.PageBook;
-import fit.se.kltn.services.BookService;
-import fit.se.kltn.services.GenreService;
-import fit.se.kltn.services.PageService;
+import fit.se.kltn.dto.UserDto;
+import fit.se.kltn.entities.*;
+import fit.se.kltn.exception.NotFoundException;
+import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +12,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,12 +32,79 @@ public class BookController {
     private BookService service;
     @Autowired
     private PageService pageService;
+    @Qualifier("bookInteractionImpl")
     @Autowired
-    private GenreService genreService;
+    private BookInteractionService interactionService;
+    @Autowired
+    private PageInteractionService pageInteractionService;
+    @Autowired
+    private ProfileService profileService;
+    @Qualifier("userServiceImpl")
+    @Autowired
+    private UserService userService;
+
+    public Profile authenProfile(UserDto dto) {
+        User u = userService.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
+        Optional<Profile> p = profileService.findByUserId(u.getId());
+        if (p.isPresent()) {
+            return p.get();
+        } else throw new RuntimeException("profile not found");
+    }
+
+    @GetMapping("/interactions")
+    @Operation(summary = "lấy danh sách tương tác theo profile id")
+    public List<BookInteraction> getBookInteraction(@AuthenticationPrincipal UserDto dto) {
+        Profile p = authenProfile(dto);
+        return interactionService.findByProfileId(p.getId());
+    }
+
+    @PostMapping("/interactions/read/{bookId}/{pageId}/{page}")
+    @Operation(summary = "Cập nhập sách đang đọc của user")
+    public List<BookInteraction> updateBookInteraction(@AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String bookId, @PathVariable("pageId") String pageId, @PathVariable("page") int page) {
+        Profile p = authenProfile(dto);
+        Book b = service.findById(bookId).orElseThrow(() -> new NotFoundException("không tìm thấy book có id: " + bookId));
+        Optional<BookInteraction> find = interactionService.getBookInteraction(b.getId(), p.getId());
+        PageBook pageFind = pageService.findById(pageId).orElseThrow(() -> new NotFoundException("không timg thấy page có id là: " + pageId));
+        if (find.isPresent()) {
+            BookInteraction f = find.get();
+            f.setReadCount(page);
+            BookInteraction save = interactionService.save(f);
+            Optional<PageInteraction> pageInteraction = pageInteractionService.findByProfileIDAndPageBookId(p.getId(), pageId);
+            if (pageInteraction.isPresent()) {
+                PageInteraction op = pageInteraction.get();
+                op.setRead(op.getRead() + 1);
+                op.setReadTime(LocalDateTime.now());
+                pageInteractionService.save(op);
+                List<BookInteraction> list = interactionService.findByProfileId(p.getId());
+                return list;
+            }
+            PageInteraction interaction = new PageInteraction();
+            interaction.setProfile(p);
+            interaction.setPageBook(pageFind);
+            interaction.setReadTime(LocalDateTime.now());
+            interaction.setRead(1);
+            pageInteractionService.save(interaction);
+            List<BookInteraction> list = interactionService.findByProfileId(p.getId());
+            return list;
+        }
+        BookInteraction f = new BookInteraction();
+        f.setBook(b);
+        f.setProfile(p);
+        f.setReadCount(page);
+        BookInteraction save = interactionService.save(f);
+        PageInteraction interaction = new PageInteraction();
+        interaction.setProfile(p);
+        interaction.setPageBook(pageFind);
+        interaction.setReadTime(LocalDateTime.now());
+        interaction.setRead(1);
+        pageInteractionService.save(interaction);
+        List<BookInteraction> list = interactionService.findByProfileId(p.getId());
+        return list;
+    }
 
     @PostMapping("/genres")
     @Operation(summary = "Tìm sách theo danh sách thể loại ")
-    public BookPageDto getBookByGenreId(@RequestBody List<Genre> genres,@RequestParam(value = "page", required = false) Optional<Integer> pageNo, @RequestParam(value = "size", required = false) Optional<Integer> size) {
+    public BookPageDto getBookByGenreId(@RequestBody List<Genre> genres, @RequestParam(value = "page", required = false) Optional<Integer> pageNo, @RequestParam(value = "size", required = false) Optional<Integer> size) {
         int currentPage = pageNo.orElse(1);
         int currentSize = size.orElse(10);
         Page<Book> page = getFilteredBooks(genres, currentPage, currentSize);
@@ -48,6 +116,7 @@ public class BookController {
         }
         return null;
     }
+
     public Page<Book> getFilteredBooks(List<Genre> genres, int pageNo, int pageSize) {
         List<Book> books = service.findAll();
         List<Book> result = new ArrayList<>();
@@ -68,6 +137,7 @@ public class BookController {
         PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
         return new PageImpl<>(pageContent, pageRequest, result.size());
     }
+
     @GetMapping
     @Operation(summary = "Lấy danh sách tất cả sách")
     public List<Book> getAll() {
@@ -113,33 +183,10 @@ public class BookController {
             throw new RuntimeException("không tìm thấy book có id " + id);
         }
         Book bb = b.get();
-        List<PageBook> pages = bb.getPages();
         if (pageBook != null) {
+            pageBook.setBook(bb);
             pageService.save(pageBook);
-            pages.add(pageBook);
         }
-        bb.setPages(pages);
-        service.save(bb);
         return pageBook;
-    }
-
-    @GetMapping("/pages/{id}/{pageNo}")
-    @Operation(summary = "Tìm trang theo book Id và số trang")
-    public PageBook findByPageNo(@PathVariable("pageNo") int pageNo, @PathVariable("id") String id) {
-        Optional<Book> b = service.findById(id);
-        if (b.isEmpty()) {
-            throw new RuntimeException("không tìm thấy book có id: " + id);
-        }
-        Book bp = b.get();
-        List<PageBook> pages = bp.getPages();
-        if (pageNo <= 0 || pageNo > pages.size()) {
-            throw new RuntimeException("Không tìm thấy số trang: " + pageNo);
-        }
-        for (PageBook pageBook : pages) {
-            if (pageBook.getPageNo() == pageNo) {
-                return pageBook;
-            }
-        }
-        throw new RuntimeException("Error");
     }
 }

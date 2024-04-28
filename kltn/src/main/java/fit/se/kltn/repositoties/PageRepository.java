@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface PageRepository extends MongoRepository<PageBook,String> {
     Optional<PageBook> findById(String id);
     Optional<PageBook> findByPageNo(int pageNo);
+    List<PageBook> findByBook_Id(String id);
 }

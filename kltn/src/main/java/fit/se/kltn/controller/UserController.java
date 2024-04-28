@@ -30,41 +30,6 @@ public class UserController {
     private UserService service;
     @Autowired
     private ProfileService profileService;
-    @Autowired
-    private BookService bookService;
-    @Qualifier("bookInteractionImpl")
-    @Autowired
-    private BookInteractionService interactionService;
-    @GetMapping("/interactions")
-    @Operation(summary = "lấy danh sách tương tác theo profile id")
-    public List<BookInteraction> getBookInteraction(@AuthenticationPrincipal UserDto dto){
-        Profile p = authenProfile(dto);
-        return interactionService.findByProfileId(p.getId());
-    }
-    @PostMapping("/interactions/read/{bookId}/{page}")
-    @Operation(summary = "Cập nhập sách đang đọc của user")
-    public List<BookInteraction> updateBookInteraction(@AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String bookId, @PathVariable("page") int page) {
-        Profile p = authenProfile(dto);
-        Book b = bookService.findById(bookId).orElseThrow(() -> new NotFoundException("không tìm thấy book có id: " + bookId));
-        BookInteraction find = interactionService.getBookInteraction(b.getId(), p.getId()).orElseThrow(() -> new NotFoundException("không tìm thấy tương tác "));
-        find.setReadCount(page);
-        interactionService.save(find);
-
-//        List<BookInteraction> lb=b.getInteractions();
-//        lb.removeIf(i->i.getId().equals(find.getId()));
-//        find.setReadCount(page);
-//        lb.add(find);
-//        b.setInteractions(lb);
-//        bookService.save(b);
-//        List<BookInteraction> lp = p.getInteractions();
-//        lp.removeIf(i->i.getId().equals(find.getId()));
-//        find.setReadCount(page);
-//        lp.add(find);
-//        interactionService.save(find);
-//        p.setInteractions(lp);
-        return interactionService.findByProfileId(p.getId());
-    }
-
     public Profile authenProfile(UserDto dto) {
         User u = service.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());

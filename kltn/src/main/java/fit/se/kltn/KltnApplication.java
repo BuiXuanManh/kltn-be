@@ -3,6 +3,7 @@ package fit.se.kltn;
 import fit.se.kltn.entities.*;
 import fit.se.kltn.enums.BookStatus;
 import fit.se.kltn.enums.ERole;
+import fit.se.kltn.enums.RateType;
 import fit.se.kltn.enums.UserStatus;
 import fit.se.kltn.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,19 +29,51 @@ public class KltnApplication {
 //    @Qualifier("userServiceImpl")
 //    @Autowired
 //    private UserService service;
-//    @Autowired
-//    private ProfileService profileService;
+    @Autowired
+    private ProfileService profileService;
 //    @Autowired
 //    private BookService bookService;
 //    @Qualifier("bookInteractionImpl")
 //    @Autowired
 //    private BookInteractionService interactionService;
+    @Autowired
+    private PageService pageService;
+    @Autowired
+    private CommentService commentService;
+    @Qualifier("pageInteractionImpl")
+    @Autowired
+    private PageInteractionService interactionService;
+
+//    @Bean
+CommandLineRunner init() {
+    return new CommandLineRunner() {
+        @Override
+        public void run(String... args) throws Exception {
+            PageBook page=pageService.findById("662890319c3cb5741b7de434").get();
+            Profile p= profileService.findById("6613fa53dba2361c3d3eb049").get();
+            Comment comment= new Comment();
+            comment.setType(RateType.COMMENT);
+            comment.setCreateAt(LocalDateTime.now());
+            comment.setContent("sách hay");
+            comment.setProfile(p);
+            comment.setPageBook(page);
+            Comment c = commentService.save(comment);
+            PageInteraction interaction= new PageInteraction();
+            interaction.setComments(List.of(c));
+            interaction.setProfile(p);
+            interaction.setPageBook(page);
+            interaction.setReadTime(LocalDateTime.now());
+            interactionService.save(interaction);
+        }
+    };
+}
 
     //    @Bean
-    CommandLineRunner init() {
-        return new CommandLineRunner() {
-            @Override
-            public void run(String... args) throws Exception {
+//    CommandLineRunner init() {
+//        return new CommandLineRunner() {
+//            @Override
+//            public void run(String... args) throws Exception {
+//
 //                Book b= bookService.findById("6602da6d23a4f271fe9056f7").get();
 //                Book b2= bookService.findById("6602da7523a4f271fe9056f8").get();
 //                Book b3= bookService.findById("6602daa923a4f271fe9056f9").get();
@@ -52,9 +85,9 @@ public class KltnApplication {
 //                b8.setCreatedAt(LocalDateTime.now());
 //                b8.setUpdateDate(LocalDateTime.now());
 //                bookService.save(b8);
-            }
-        };
-    }
+//            }
+//        };
+//    }
 //
 //    	@Bean
 //    CommandLineRunner init() {

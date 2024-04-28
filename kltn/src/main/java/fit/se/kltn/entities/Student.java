@@ -23,6 +23,6 @@ public class Student {
     private String clazz;
     private String idCard;
     private String contact;
-    @DocumentReference
+    @DocumentReference(lazy = true)
     private User user;
 }

@@ -26,4 +26,9 @@ public class CommentImpl implements CommentService {
     public Comment save(Comment comment) {
         return repository.save(comment);
     }
+
+    @Override
+    public List<Comment> findByPageId(String pageId) {
+        return repository.findByPageBook_Id(pageId);
+    }
 }
