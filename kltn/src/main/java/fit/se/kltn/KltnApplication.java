@@ -29,44 +29,43 @@ public class KltnApplication {
 //    @Qualifier("userServiceImpl")
 //    @Autowired
 //    private UserService service;
-    @Autowired
-    private ProfileService profileService;
+//    @Autowired
+//    private ProfileService profileService;
 //    @Autowired
 //    private BookService bookService;
 //    @Qualifier("bookInteractionImpl")
 //    @Autowired
 //    private BookInteractionService interactionService;
-    @Autowired
-    private PageService pageService;
-    @Autowired
-    private CommentService commentService;
-    @Qualifier("pageInteractionImpl")
-    @Autowired
-    private PageInteractionService interactionService;
+//    @Autowired
+//    private PageService pageService;
+//    @Autowired
+//    private CommentService commentService;
+//    @Qualifier("pageInteractionImpl")
+//    @Autowired
+//    private PageInteractionService interactionService;
 
 //    @Bean
-CommandLineRunner init() {
-    return new CommandLineRunner() {
-        @Override
-        public void run(String... args) throws Exception {
-            PageBook page=pageService.findById("662890319c3cb5741b7de434").get();
-            Profile p= profileService.findById("6613fa53dba2361c3d3eb049").get();
-            Comment comment= new Comment();
-            comment.setType(RateType.COMMENT);
-            comment.setCreateAt(LocalDateTime.now());
-            comment.setContent("sách hay");
-            comment.setProfile(p);
-            comment.setPageBook(page);
-            Comment c = commentService.save(comment);
-            PageInteraction interaction= new PageInteraction();
-            interaction.setComments(List.of(c));
-            interaction.setProfile(p);
-            interaction.setPageBook(page);
-            interaction.setReadTime(LocalDateTime.now());
-            interactionService.save(interaction);
-        }
-    };
-}
+//CommandLineRunner init() {
+//    return new CommandLineRunner() {
+//        @Override
+//        public void run(String... args) throws Exception {
+//            PageBook page=pageService.findById("662890319c3cb5741b7de434").get();
+//            Profile p= profileService.findById("6613fa53dba2361c3d3eb049").get();
+//            Comment comment= new Comment();
+//            comment.setType(RateType.COMMENT);
+//            comment.setCreateAt(LocalDateTime.now());
+//            comment.setContent("sách hay");
+//            comment.setProfile(p);
+//            comment.setPageBook(page);
+//            Comment c = commentService.save(comment);
+//            PageInteraction interaction= new PageInteraction();
+//            interaction.setProfile(p);
+//            interaction.setPageBook(page);
+//            interaction.setReadTime(LocalDateTime.now());
+//            interactionService.save(interaction);
+//        }
+//    };
+//}
 
     //    @Bean
 //    CommandLineRunner init() {

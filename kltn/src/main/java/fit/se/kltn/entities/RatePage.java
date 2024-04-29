@@ -20,8 +20,9 @@ public class RatePage {
     private String id;
     @Field("profile_id")
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
-    @DocumentReference(lazy = true)
     private Profile profile;
+    @Field("page_id")
+    private PageBook page;
     @Min(0) @Max(5)
     private Double rate;
 }

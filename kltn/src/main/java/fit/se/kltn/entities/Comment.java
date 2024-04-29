@@ -31,6 +31,7 @@ public class Comment {
     @Indexed
     private Double rate;
     private RateType type;
+    private int childrenCount;
     @Field("profile_id")
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     private Profile profile;

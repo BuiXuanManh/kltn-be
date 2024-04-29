@@ -35,7 +35,7 @@ public class UserController {
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
             return p.get();
-        } else throw new RuntimeException("profile not found");
+        } else throw new RuntimeException("không tìm thấy profile user có mssv: "+ u.getMssv());
     }
 
     @GetMapping("/profile")

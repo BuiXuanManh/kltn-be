@@ -1,9 +1,11 @@
 package fit.se.kltn.implement;
 
 import fit.se.kltn.entities.Comment;
+import fit.se.kltn.enums.RateType;
 import fit.se.kltn.repositoties.CommentRepository;
 import fit.se.kltn.services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,6 +31,11 @@ public class CommentImpl implements CommentService {
 
     @Override
     public List<Comment> findByPageId(String pageId) {
-        return repository.findByPageBook_Id(pageId);
+        return repository.findByPageBook_IdAndType(pageId,Sort.by(Sort.Direction.DESC, "createdAt"),RateType.COMMENT);
+    }
+
+    @Override
+    public Optional<Comment> findByProfileIdAndPageIdAndType(String pId, String pageId, RateType type) {
+        return repository.findByProfile_IdAndPageBook_IdAndType(pId,pageId,type);
     }
 }

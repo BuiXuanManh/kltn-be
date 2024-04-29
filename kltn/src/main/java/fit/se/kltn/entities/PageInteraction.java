@@ -35,8 +35,6 @@ public class PageInteraction {
     private int read;
     private boolean save;
     private boolean mark;
-    @ToString.Include
-    private List<Comment> comments;
-    @ToString.Include
-    private List<Report> reports;
+    @Field("report_id")
+    private Report report;
 }

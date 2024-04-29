@@ -30,13 +30,46 @@ public class PageController {
     private ProfileService profileService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private RatepageService ratepageService;
+
+    @GetMapping("/book/{bookId}")
+    @Operation(summary = "lấy danh sách trang theo book id")
+    public List<PageBook> getPagesByBookId(@PathVariable("bookId") String id){
+        return service.findByBookId(id);
+    }
+    @PostMapping("/ratePage/{id}")
+    @Operation(summary = "thêm đánh giá vào trang")
+    public RatePage addRatePage(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto, @RequestBody Double point) {
+        Profile p = authenProfile(dto);
+        PageBook page = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy page có id: " + id));
+        Optional<RatePage> rate = ratepageService.findByProfileIdAndPageId(p.getId(), page.getId());
+        if (rate.isEmpty()) {
+            RatePage r = new RatePage();
+            r.setPage(page);
+            r.setProfile(p);
+            r.setRate(point);
+            return ratepageService.save(r);
+        }
+        RatePage r = rate.get();
+        r.setRate(point);
+        return ratepageService.save(r);
+    }
+
+    @GetMapping("/ratePage/{id}")
+    public RatePage findRatePageByProfileIdAndPageId(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto) {
+        Profile p = authenProfile(dto);
+        PageBook page = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy page có id: " + id));
+        RatePage rate = ratepageService.findByProfileIdAndPageId(p.getId(), page.getId()).orElseThrow(() -> new NotFoundException("không tìm thấy đánh giá trang"));
+        return rate;
+    }
 
     public Profile authenProfile(UserDto dto) {
         User u = userService.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
             return p.get();
-        } else throw new RuntimeException("profile not found");
+        } else throw new RuntimeException("không tìm thấy profile user có mssv: "+ u.getMssv());
     }
 
     @GetMapping("/interactions/profile/{pageId}")

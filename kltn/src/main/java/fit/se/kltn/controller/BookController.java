@@ -6,6 +6,7 @@ import fit.se.kltn.entities.*;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,13 +43,39 @@ public class BookController {
     @Qualifier("userServiceImpl")
     @Autowired
     private UserService userService;
+    @Autowired
+    private RateBookService rateBookService;
+    @PostMapping("/rateBook/{id}")
+    @Operation(summary = "thêm đánh giá vào book")
+    public RateBook addRateBook(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto, @RequestBody @Valid RateBook rateBook) {
+        Profile p = authenProfile(dto);
+        Book book = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
+        Optional<RateBook> rate = rateBookService.findByProfileIdAndBookId(p.getId(), book.getId());
+        if (rate.isEmpty()) {
+            rateBook.setBook(book);
+            rateBook.setProfile(p);
+            return rateBookService.save(rateBook);
+        }
+        RateBook r = rate.get();
+        r.setContentBook(rateBook.getContentBook());
+        r.setHelpful(rateBook.getHelpful());
+        r.setUnderstand(rateBook.getUnderstand());
+        return rateBookService.save(r);
+    }
 
+    @GetMapping("/rateBook/{id}")
+    public RateBook findRateBookByProfileIdAndBookId(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto) {
+        Profile p = authenProfile(dto);
+        Book page = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
+        RateBook rate = rateBookService.findByProfileIdAndBookId(p.getId(), page.getId()).orElseThrow(() -> new NotFoundException("không tìm thấy đánh giá sách"));
+        return rate;
+    }
     public Profile authenProfile(UserDto dto) {
         User u = userService.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
             return p.get();
-        } else throw new RuntimeException("profile not found");
+        } else throw new RuntimeException("không tìm thấy profile user có mssv: "+ u.getMssv());
     }
 
     @GetMapping("/interactions")
