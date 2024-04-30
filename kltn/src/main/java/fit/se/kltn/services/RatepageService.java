@@ -14,4 +14,5 @@ public interface RatepageService {
     List<RatePage> findByProfileId(String id);
     Optional<RatePage> findByProfileIdAndPageId(String proId,String id);
     RatePage save(RatePage ratePage);
+    List<RatePage> findByBookId(String id);
 }

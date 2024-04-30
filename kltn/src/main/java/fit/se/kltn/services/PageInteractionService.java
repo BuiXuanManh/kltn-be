@@ -14,4 +14,5 @@ public interface PageInteractionService {
     List<PageInteraction> findByPageBookId(String id);
     Optional<PageInteraction> findByProfileIDAndPageBookId(String profileId, String pageBookId);
     PageInteraction save(PageInteraction interaction);
+    List<PageInteraction> findByBookId(String bookId);
 }

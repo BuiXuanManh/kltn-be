@@ -3,6 +3,7 @@ package fit.se.kltn.controller;
 import fit.se.kltn.dto.BookPageDto;
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.*;
+import fit.se.kltn.enums.RateType;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +18,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,37 +48,28 @@ public class BookController {
     private UserService userService;
     @Autowired
     private RateBookService rateBookService;
-    @PostMapping("/rateBook/{id}")
-    @Operation(summary = "thêm đánh giá vào book")
-    public RateBook addRateBook(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto, @RequestBody @Valid RateBook rateBook) {
-        Profile p = authenProfile(dto);
-        Book book = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
-        Optional<RateBook> rate = rateBookService.findByProfileIdAndBookId(p.getId(), book.getId());
-        if (rate.isEmpty()) {
-            rateBook.setBook(book);
-            rateBook.setProfile(p);
-            return rateBookService.save(rateBook);
-        }
-        RateBook r = rate.get();
-        r.setContentBook(rateBook.getContentBook());
-        r.setHelpful(rateBook.getHelpful());
-        r.setUnderstand(rateBook.getUnderstand());
-        return rateBookService.save(r);
+    @Autowired
+    private CommentService commentService;
+    @GetMapping("/rateBook/getAll/{id}")
+    @Operation(summary = "lấy tất cả đánh giá sách theo book id")
+    public List<RateBook> findByBookId(@PathVariable("id") String id){
+        return rateBookService.findByBookId(id);
     }
-
     @GetMapping("/rateBook/{id}")
-    public RateBook findRateBookByProfileIdAndBookId(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto) {
+    @Operation(summary = "tìm đánh theo book id và profile id")
+    public RateBook findRateBookByProfileIdAndBookId(@AuthenticationPrincipal UserDto dto, @PathVariable("id") String id) {
         Profile p = authenProfile(dto);
         Book page = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
         RateBook rate = rateBookService.findByProfileIdAndBookId(p.getId(), page.getId()).orElseThrow(() -> new NotFoundException("không tìm thấy đánh giá sách"));
         return rate;
     }
+
     public Profile authenProfile(UserDto dto) {
         User u = userService.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
             return p.get();
-        } else throw new RuntimeException("không tìm thấy profile user có mssv: "+ u.getMssv());
+        } else throw new RuntimeException("không tìm thấy profile user có mssv: " + u.getMssv());
     }
 
     @GetMapping("/interactions")

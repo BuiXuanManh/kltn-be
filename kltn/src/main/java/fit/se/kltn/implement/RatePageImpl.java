@@ -42,4 +42,9 @@ public class RatePageImpl implements RatepageService {
     public RatePage save(RatePage ratePage) {
         return repository.save(ratePage);
     }
+
+    @Override
+    public List<RatePage> findByBookId(String id) {
+        return repository.findByPage_Book_Id(id);
+    }
 }

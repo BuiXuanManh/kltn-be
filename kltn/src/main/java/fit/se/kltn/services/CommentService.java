@@ -13,5 +13,7 @@ public interface CommentService {
     Optional<Comment> findById(String id);
     Comment save(Comment comment);
     List<Comment> findByPageId(String pageId);
-    Optional<Comment> findByProfileIdAndPageIdAndType(String pId, String pageId, RateType type);
+    Optional<Comment> findByProfileIdAndBookIdAndType(String pId, String bookId, RateType type);
+    Optional<Comment> findByProfileIdAndPageIdAndType(String pId,String pageId, RateType type);
+    List<Comment> findByBookIdAndType(String bookId, RateType type);
 }

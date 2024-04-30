@@ -12,4 +12,5 @@ public interface PageInteractionRepository extends MongoRepository<PageInteracti
     List<PageInteraction> findByPageBook_Id(String id);
     List<PageInteraction> findByProfile_Id(String id);
     Optional<PageInteraction> findByProfile_IdAndPageBook_Id(String profileId, String pageBookId);
+    List<PageInteraction> findByPageBook_Book_Id(String bookId);
 }

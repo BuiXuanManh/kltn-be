@@ -2,6 +2,8 @@ package fit.se.kltn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import fit.se.kltn.enums.RateType;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,7 +30,12 @@ public class Comment {
     @Field("parent_id")
     @DocumentReference(lazy = true)
     private Comment parent;
+    @Field("book_id")
+    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    @DocumentReference(lazy = true)
+    private Book book;
     @Indexed
+    @Min(1) @Max(5)
     private Double rate;
     private RateType type;
     private int childrenCount;
@@ -36,7 +43,6 @@ public class Comment {
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     private Profile profile;
     @Field("page_id")
-    @DocumentReference(lazy = true)
     private PageBook pageBook;
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     @DocumentReference(lazy = true)

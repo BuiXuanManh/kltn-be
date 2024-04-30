@@ -35,7 +35,17 @@ public class CommentImpl implements CommentService {
     }
 
     @Override
+    public Optional<Comment> findByProfileIdAndBookIdAndType(String pId, String bookId, RateType type) {
+        return repository.findByProfile_IdAndBook_IdAndType(pId,bookId,type);
+    }
+
+    @Override
     public Optional<Comment> findByProfileIdAndPageIdAndType(String pId, String pageId, RateType type) {
         return repository.findByProfile_IdAndPageBook_IdAndType(pId,pageId,type);
+    }
+
+    @Override
+    public List<Comment> findByBookIdAndType(String bookId, RateType type) {
+        return repository.finByBookId(bookId,type);
     }
 }

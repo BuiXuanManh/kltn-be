@@ -6,6 +6,7 @@ import fit.se.kltn.enums.RateType;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,24 +34,59 @@ public class CommentController {
     private PageInteractionService interactionService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private RateBookService rateBookService;
 
     @GetMapping("/page/get/{pageId}")
-    @Operation(summary = "lấy comment hoặc rate theo pageId và profile id")
-    public Comment getComment(@AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId, @RequestParam("type") String type) {
+    @Operation(summary = "lấy comment theo pageId và profile id")
+    public Comment getComment(@AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId) {
         Profile p = authenProfile(dto);
         PageBook page = pageService.findById(pageId).orElseThrow(() -> new NotFoundException("khÔng tìm thấy page có id: " + pageId));
-        if (type.equals("rate"))
-            return service.findByProfileIdAndPageIdAndType(p.getId(), page.getId(), RateType.RATE).orElseThrow(() -> new RuntimeException("không tìm thấy " + type));
-        return service.findByProfileIdAndPageIdAndType(p.getId(), page.getId(), RateType.COMMENT).orElseThrow(() -> new RuntimeException("không tìm thấy " + type));
-
+        return service.findByProfileIdAndPageIdAndType(p.getId(), page.getId(), RateType.COMMENT).orElseThrow(() -> new RuntimeException("không tìm thấy comment"));
     }
-
     @GetMapping
     @Operation(summary = "lấy danh sách tất cả comment")
     public List<Comment> getAll() {
         return service.findAll();
     }
-
+    @PostMapping("/rateBook/{bookId}")
+    @Operation(summary = "thêm đánh giá vào book")
+    public Comment addRateBook(@AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String id, @RequestBody @Valid RateBook rateBook) {
+        Profile p = authenProfile(dto);
+        Book book = bookService.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
+        Optional<Comment> c = service.findByProfileIdAndBookIdAndType(p.getId(), id, RateType.RATE);
+        Optional<RateBook> rate = rateBookService.findByProfileIdAndBookId(p.getId(), book.getId());
+        double avg= (rateBook.getContentBook()+ rateBook.getHelpful()+ rateBook.getUnderstand())/3;
+        if (rate.isEmpty()) {
+            rateBook.setBook(book);
+            rateBook.setProfile(p);
+            rateBook.setTotalRate(Math.round(avg * 100) / 100.0);
+            rateBookService.save(rateBook);
+        }else {
+            RateBook r = rate.get();
+            r.setBook(book);
+            r.setProfile(p);
+            r.setContentBook(rateBook.getContentBook());
+            r.setHelpful(rateBook.getHelpful());
+            r.setUnderstand(rateBook.getUnderstand());
+            r.setTotalRate(Math.round(avg * 100) / 100.0);
+            rateBookService.save(r);
+        }
+        if (c.isPresent()) {
+            Comment co = c.get();
+            co.setRate(Math.round(avg * 100) / 100.0);
+            co.setContent(rateBook.getContent());
+            return service.save(co);
+        }
+        Comment comment = new Comment();
+        comment.setBook(book);
+        comment.setProfile(p);
+        comment.setCreateAt(LocalDateTime.now());
+        comment.setType(RateType.RATE);
+        comment.setContent(rateBook.getContent());
+        comment.setRate(Math.round(avg * 100) / 100.0);
+        return service.save(comment);
+    }
     @GetMapping("/page/{pageId}")
     @Operation(summary = "lấy dánh sách comment theo page id")
     public List<Comment> getCommentsByPageId(@PathVariable("pageId") String id) {
@@ -71,30 +107,25 @@ public class CommentController {
         } else throw new RuntimeException("không tìm thấy profile user có mssv: " + u.getMssv());
     }
 
+    @GetMapping("/book/{bookId}")
+    @Operation(summary = "lấy comment hoặc đánh giá theo book id")
+    public List<Comment> getRatesByBookId(@PathVariable("bookId") String bookId, @RequestParam("type") String type) {
+        Book b = bookService.findById(bookId).orElseThrow(() -> new NotFoundException("không tìm thấy book có id: " + bookId));
+        if (type.equals("comment")) {
+            return service.findByBookIdAndType(b.getId(), RateType.COMMENT);
+        } else if (type.equals("rate"))
+            return service.findByBookIdAndType(b.getId(), RateType.RATE);
+        return null;
+    }
+
     @PostMapping("/{pageId}")
     @Operation(summary = "thêm comment với param rate=comment, thêm rate với param rate=rate")
     public Comment save(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId, @RequestParam("rate") String rate) {
         if (content.startsWith("\"") && content.endsWith("\"")) {
             content = content.substring(1, content.length() - 1);
         }
-
         Profile p = authenProfile(dto);
         PageBook pb = pageService.findById(pageId).orElseThrow(() -> new NotFoundException("Không tìm thấy page có id: " + pageId));
-        if (rate.equals("rate")) {
-            Optional<Comment> c = service.findByProfileIdAndPageIdAndType(p.getId(),pageId,RateType.RATE);
-            if(c.isPresent()) {
-                Comment co = c.get();
-                co.setRate(Double.parseDouble(content));
-                return service.save(co);
-            }
-            Comment comment = new Comment();
-            comment.setPageBook(pb);
-            comment.setProfile(p);
-            comment.setCreateAt(LocalDateTime.now());
-            comment.setType(RateType.RATE);
-            comment.setRate(Double.parseDouble(content));
-            return service.save(comment);
-        }
         Comment comment = new Comment();
         comment.setCreateAt(LocalDateTime.now());
         comment.setContent(content);

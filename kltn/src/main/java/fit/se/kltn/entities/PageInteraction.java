@@ -33,7 +33,6 @@ public class PageInteraction {
     private LocalDateTime readTime;
     private EmoType type;
     private int read;
-    private boolean save;
     private boolean mark;
     @Field("report_id")
     private Report report;

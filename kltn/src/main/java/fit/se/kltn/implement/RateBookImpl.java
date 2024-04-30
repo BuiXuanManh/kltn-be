@@ -1,10 +1,8 @@
 package fit.se.kltn.implement;
 
 import fit.se.kltn.entities.RateBook;
-import fit.se.kltn.entities.RatePage;
 import fit.se.kltn.repositoties.RateBookRepository;
 import fit.se.kltn.services.RateBookService;
-import fit.se.kltn.services.RatepageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

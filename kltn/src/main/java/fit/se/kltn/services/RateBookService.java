@@ -1,7 +1,6 @@
 package fit.se.kltn.services;
 
 import fit.se.kltn.entities.RateBook;
-import fit.se.kltn.entities.RatePage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

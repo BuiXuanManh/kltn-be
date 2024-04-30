@@ -1,7 +1,6 @@
 package fit.se.kltn.repositoties;
 
 import fit.se.kltn.entities.RateBook;
-import fit.se.kltn.entities.RatePage;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

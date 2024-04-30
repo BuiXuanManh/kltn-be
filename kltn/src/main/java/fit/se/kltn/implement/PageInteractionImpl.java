@@ -42,4 +42,9 @@ public class PageInteractionImpl implements PageInteractionService {
     public PageInteraction save(PageInteraction interaction) {
         return repository.save(interaction);
     }
+
+    @Override
+    public List<PageInteraction> findByBookId(String bookId) {
+        return repository.findByPageBook_Book_Id(bookId);
+    }
 }
