@@ -32,6 +32,11 @@ public class PageController {
     private UserService userService;
     @Autowired
     private RatepageService ratepageService;
+    @GetMapping("/{pageId}")
+    public PageBook findById(@PathVariable("pageId") String pageId){
+       return service.findById(pageId).orElse(null);
+    }
+
     @PostMapping("/ratePage/{pageId}")
     @Operation(summary = "thêm đánh giá vào trang")
     public RatePage addRatePage(@AuthenticationPrincipal UserDto dto,@RequestBody Double rate, @PathVariable("pageId") String id) {

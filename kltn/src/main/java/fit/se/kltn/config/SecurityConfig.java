@@ -51,8 +51,6 @@ public class SecurityConfig {
                                 "/api/**",
                                 "/users/**",
                                 "/auth/**",
-                                "/api/refreshToken",
-                                "/api/registration",
                                 "/error",
                                 "/actuator/**",
                                 "/swagger-ui/**",
@@ -60,8 +58,7 @@ public class SecurityConfig {
                                 "/api-docs/**"
                         ).permitAll()
                         .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/profile/**").hasAnyAuthority("USER")
-                        .requestMatchers("/adminuser/**").hasAnyAuthority("USER", "ADMIN")
+                        .requestMatchers("/reports/**","/profile/**").hasAnyAuthority("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> session

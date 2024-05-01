@@ -29,9 +29,6 @@ public class CommentController {
     private BookService bookService;
     @Autowired
     private PageService pageService;
-    @Qualifier("pageInteractionImpl")
-    @Autowired
-    private PageInteractionService interactionService;
     @Autowired
     private UserService userService;
     @Autowired
@@ -44,11 +41,13 @@ public class CommentController {
         PageBook page = pageService.findById(pageId).orElseThrow(() -> new NotFoundException("khÔng tìm thấy page có id: " + pageId));
         return service.findByProfileIdAndPageIdAndType(p.getId(), page.getId(), RateType.COMMENT).orElseThrow(() -> new RuntimeException("không tìm thấy comment"));
     }
+
     @GetMapping
     @Operation(summary = "lấy danh sách tất cả comment")
     public List<Comment> getAll() {
         return service.findAll();
     }
+
     @PostMapping("/rateBook/{bookId}")
     @Operation(summary = "thêm đánh giá vào book")
     public Comment addRateBook(@AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String id, @RequestBody @Valid RateBook rateBook) {
@@ -56,13 +55,13 @@ public class CommentController {
         Book book = bookService.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
         Optional<Comment> c = service.findByProfileIdAndBookIdAndType(p.getId(), id, RateType.RATE);
         Optional<RateBook> rate = rateBookService.findByProfileIdAndBookId(p.getId(), book.getId());
-        double avg= (rateBook.getContentBook()+ rateBook.getHelpful()+ rateBook.getUnderstand())/3;
+        double avg = (rateBook.getContentBook() + rateBook.getHelpful() + rateBook.getUnderstand()) / 3;
         if (rate.isEmpty()) {
             rateBook.setBook(book);
             rateBook.setProfile(p);
             rateBook.setTotalRate(Math.round(avg * 100) / 100.0);
             rateBookService.save(rateBook);
-        }else {
+        } else {
             RateBook r = rate.get();
             r.setBook(book);
             r.setProfile(p);
@@ -76,6 +75,7 @@ public class CommentController {
             Comment co = c.get();
             co.setRate(Math.round(avg * 100) / 100.0);
             co.setContent(rateBook.getContent());
+            co.setCreateAt(LocalDateTime.now());
             return service.save(co);
         }
         Comment comment = new Comment();
@@ -87,6 +87,7 @@ public class CommentController {
         comment.setRate(Math.round(avg * 100) / 100.0);
         return service.save(comment);
     }
+
     @GetMapping("/page/{pageId}")
     @Operation(summary = "lấy dánh sách comment theo page id")
     public List<Comment> getCommentsByPageId(@PathVariable("pageId") String id) {
@@ -119,8 +120,8 @@ public class CommentController {
     }
 
     @PostMapping("/{pageId}")
-    @Operation(summary = "thêm comment với param rate=comment, thêm rate với param rate=rate")
-    public Comment save(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId, @RequestParam("rate") String rate) {
+    @Operation(summary = "thêm comment vào page")
+    public Comment save(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId) {
         if (content.startsWith("\"") && content.endsWith("\"")) {
             content = content.substring(1, content.length() - 1);
         }
@@ -131,9 +132,25 @@ public class CommentController {
         comment.setContent(content);
         comment.setPageBook(pb);
         comment.setProfile(p);
+        comment.setBook(pb.getBook());
         comment.setType(RateType.COMMENT);
         return service.save(comment);
     }
-
+    @PostMapping("/book/{bookId}")
+    @Operation(summary = "thêm comment vào book")
+    public Comment saveByBookId(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String id) {
+        if (content.startsWith("\"") && content.endsWith("\"")) {
+            content = content.substring(1, content.length() - 1);
+        }
+        Profile p = authenProfile(dto);
+        Book pb = bookService.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy book có id: " + id));
+        Comment comment = new Comment();
+        comment.setCreateAt(LocalDateTime.now());
+        comment.setContent(content);
+        comment.setProfile(p);
+        comment.setBook(pb);
+        comment.setType(RateType.COMMENT);
+        return service.save(comment);
+    }
 
 }

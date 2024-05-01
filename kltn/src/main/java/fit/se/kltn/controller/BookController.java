@@ -141,20 +141,14 @@ public class BookController {
     public Page<Book> getFilteredBooks(List<Genre> genres, int pageNo, int pageSize) {
         List<Book> books = service.findAll();
         List<Book> result = new ArrayList<>();
-
-        // Lọc các cuốn sách theo thể loại
         for (Book book : books) {
             if (book.getGenres().stream().anyMatch(genre -> genres.stream().anyMatch(g -> g.getId().equals(genre.getId())))) {
                 result.add(book);
             }
         }
-
-        // Tạo trang sách từ danh sách đã lọc
         int start = Math.min((pageNo - 1) * pageSize, result.size());
         int end = Math.min(start + pageSize, result.size());
         List<Book> pageContent = result.subList(start, end);
-
-        // Tạo đối tượng Page từ danh sách đã lọc
         PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
         return new PageImpl<>(pageContent, pageRequest, result.size());
     }

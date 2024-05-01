@@ -12,28 +12,21 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-@Document(collection = "rateBooks")
+@Document("computed_pages")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RateBook {
+public class ComputedPage {
     @Id
     private String id;
-    @Field("profile_id")
-    @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
+    @Field("page_id")
+    @DocumentReference(lazy = true)
+    private PageBook pageBook;
     @Indexed
-    private Profile profile;
-    @Field("book_id")
-    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    private Double readCount;
     @Indexed
-    private Book book;
-    @Min(1) @Max(5)
-    private Double helpful;
-    @Min(1) @Max(5)
-    private Double contentBook;
-    @Min(1) @Max(5)
-    private Double understand;
-    @Min(1) @Max(5)
-    private Double totalRate;
-    private String content;
+    private int commentCount;
+    @Indexed
+    private long emotion;
+    private long mark;
 }

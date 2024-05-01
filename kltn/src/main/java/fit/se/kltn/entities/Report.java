@@ -1,6 +1,7 @@
 package fit.se.kltn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import fit.se.kltn.enums.ReportType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,12 +19,14 @@ public class Report {
     @Id
     @Indexed
     private String id;
-    private String title;
     @Field("comment_id")
     @JsonIncludeProperties({"id","content","createAt","type","rate"})
     private Comment comment;
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     @Field("profile_id")
     private Profile profile;
+    @Field("page_id")
+    private PageBook pageBook;
+    private ReportType type;
     private String content;
 }

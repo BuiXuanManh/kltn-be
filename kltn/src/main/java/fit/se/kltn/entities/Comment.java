@@ -43,6 +43,7 @@ public class Comment {
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     private Profile profile;
     @Field("page_id")
+    @DocumentReference(lazy = true)
     private PageBook pageBook;
     @JsonIncludeProperties({"id", "firstName", "lastName", "image", "coverImage", "gender"})
     @DocumentReference(lazy = true)

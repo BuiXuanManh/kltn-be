@@ -46,6 +46,6 @@ public class CommentImpl implements CommentService {
 
     @Override
     public List<Comment> findByBookIdAndType(String bookId, RateType type) {
-        return repository.finByBookId(bookId,type);
+        return repository.findByBook_IdAndType(bookId,type);
     }
 }
