@@ -50,6 +50,22 @@ public class BookController {
     private RateBookService rateBookService;
     @Autowired
     private CommentService commentService;
+    @GetMapping("/find/{keyword}")
+    @Operation(summary = "tìm theo tiêu đề, tên tác giả, thể loại")
+    public List<Book> findBook(@PathVariable("keyword") String keyword){
+        List<Book> list= service.findAll();
+        return list.stream().filter(b -> {
+            if (b.getTitle().toLowerCase().contains(keyword.toLowerCase())) {
+                return true;
+            }
+            if (b.getAuthors().stream().anyMatch(author ->
+                    author.getName().toLowerCase().contains(keyword.toLowerCase()))) {
+                return true;
+            }
+            return b.getGenres().stream().anyMatch(genre ->
+                    genre.getName().toLowerCase().contains(keyword.toLowerCase()));
+        }).collect(Collectors.toList());
+    }
     @GetMapping("/rateBook/getAll/{id}")
     @Operation(summary = "lấy tất cả đánh giá sách theo book id")
     public List<RateBook> findByBookId(@PathVariable("id") String id){
