@@ -12,8 +12,8 @@ import java.util.Optional;
 
 @Repository
 public interface CommentRepository extends MongoRepository<Comment, String> {
-    List<Comment> findByPageBook_IdAndType(String id, Sort sort, RateType type);
+    List<Comment> findByPageBook_IdAndType(String id, RateType type, Sort sort);
     Optional<Comment> findByProfile_IdAndBook_IdAndType(String pId,String bookId, RateType type);
     Optional<Comment> findByProfile_IdAndPageBook_IdAndType(String pId,String pageId, RateType type);
-    List<Comment> findByBook_IdAndType(String bookId, RateType type);
+    List<Comment> findByBook_IdAndType(String bookId, RateType type, Sort sort);
 }

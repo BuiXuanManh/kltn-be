@@ -2,6 +2,7 @@ package fit.se.kltn.controller;
 
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.*;
+import fit.se.kltn.enums.ERole;
 import fit.se.kltn.enums.EmoType;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
@@ -53,6 +54,19 @@ public class PageController {
         rpage.setPage(page);
         rpage.setRate(rate);
         return ratepageService.save(rpage);
+    }
+    @PostMapping("/save/{bookId}")
+    public void savePage(@RequestBody List<PageBook> pages, @AuthenticationPrincipal UserDto dto,@PathVariable("bookId")String id){
+        authenProfile(dto);
+        Book b = bookService.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy book có id: " + id));
+        if(dto.getRole().equals(ERole.ADMIN)){
+            if(pages.isEmpty())
+                throw new RuntimeException("trang rỗng");
+            for(PageBook p:pages){
+                p.setBook(b);
+                service.save(p);
+            }
+        }
     }
     @GetMapping("/ratePage/{pageId}")
     @Operation(summary = "lấy đánh giá theo pageId và profile id ")

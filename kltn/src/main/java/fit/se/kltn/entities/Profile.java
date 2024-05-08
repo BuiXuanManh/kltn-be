@@ -1,6 +1,7 @@
 package fit.se.kltn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
@@ -31,6 +32,8 @@ public class Profile {
     private String coverImage;
     private boolean gender;
     private LocalDate birthday;
+    @Email
+    private String email;
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate

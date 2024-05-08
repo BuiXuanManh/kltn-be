@@ -3,7 +3,7 @@ package fit.se.kltn.controller;
 import fit.se.kltn.dto.BookPageDto;
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.*;
-import fit.se.kltn.enums.RateType;
+import fit.se.kltn.enums.ERole;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +23,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -50,6 +51,147 @@ public class BookController {
     private RateBookService rateBookService;
     @Autowired
     private CommentService commentService;
+    public BookPageDto getPage(Integer page,Integer size,String sortBy){
+        Page<Book> p = service.findPage(page - 1, size, sortBy, "desc");
+        int totalPage = p.getTotalPages();
+        if (totalPage > 0) {
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPage).boxed().collect(Collectors.toList());
+            BookPageDto dto = new BookPageDto(p, pageNumbers);
+            return dto;
+        }
+        throw new RuntimeException("Invalid page");
+    }
+    @PostMapping("/save")
+    public Book save(@RequestBody Book book, @AuthenticationPrincipal UserDto dto){
+        authenProfile(dto);
+        if(dto.getRole().equals(ERole.ADMIN)){
+            /
+            book.setUpdateDate(LocalDateTime.now());
+            book.setCreatedAt(LocalDateTime.now());
+            return service.save(book);
+        }
+        throw new RuntimeException("bạn không phải admin");
+    }
+    public Page<Book> converPage(List<Book> result,int pageNo,int pageSize){
+        int start = Math.min((pageNo - 1) * pageSize, result.size());
+        int end = Math.min(start + pageSize, result.size());
+        List<Book> pageContent = result.subList(start, end);
+        PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
+        return new PageImpl<>(pageContent, pageRequest, result.size());
+    }
+//    @GetMapping("/nominate/time")
+//    public BookPageDto getBookByNominated(@RequestParam(value = "page", required = false) Optional<Integer> page, @RequestParam(value = "size", required = false) Optional<Integer> size){
+//        List<BookInteraction> l = interactionService.findAll();
+//        List<Book> books=new ArrayList<Book>();
+//        Map<Book, List<BookInteraction>> group = interactionService.groupInteractionsByBookId(l);
+//        for (Map.Entry<Book, List<BookInteraction>> entry : group.entrySet()) {
+//            Book book = entry.getKey();
+//            List<BookInteraction> interactions=entry.getValue();
+//            long count=interactions.stream().map(BookInteraction::isNominated).count();
+//            books.add(book);
+//        }
+//        int currentPage = page.orElse(1);
+//        int currentSize = size.orElse(10);
+//        Page<Book> pages = converPage(books, currentPage, currentSize);
+//        int totalPage = pages.getTotalPages();
+//        if (totalPage > 0) {
+//            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPage).boxed().collect(Collectors.toList());
+//            BookPageDto dto = new BookPageDto(pages, pageNumbers);
+//            return dto;
+//        }
+//        throw new RuntimeException("Invalid page");
+//    }
+
+    @GetMapping("/getAll")
+    @Operation(summary = "Lấy danh sách theo trang", description = "vó thể truyền vào số trang và kích thước trang hoặc không")
+    public BookPageDto getAllBySort(@RequestParam(value = "page", required = false) Optional<Integer> page, @RequestParam(value = "size", required = false) Optional<Integer> size) {
+        int currentPage = page.orElse(1);
+        int currentSize = size.orElse(10);
+        return getPage(currentPage,currentSize,"createAt");
+    }
+    @GetMapping("/interaction/{id}")
+    public BookInteraction getInteraction(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto){
+        Book b = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy sách id: " + id));
+        Profile p = authenProfile(dto);
+        Optional<BookInteraction> inte = interactionService.getBookInteraction(b.getId(), p.getId());
+        return inte.orElse(null);
+    }
+
+    @PostMapping("/follow/{bookId}")
+    public BookInteraction followBook(@PathVariable("bookId") String id, @AuthenticationPrincipal UserDto dto){
+        Book b = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy sách id: " + id));
+        Profile p = authenProfile(dto);
+        Optional<BookInteraction> inte = interactionService.getBookInteraction(b.getId(), p.getId());
+        if(inte.isEmpty()){
+            BookInteraction interaction= new BookInteraction();
+            interaction.setBook(b);
+            interaction.setProfile(p);
+            interaction.setFollowed(true);
+            return interactionService.save(interaction);
+        }
+        BookInteraction interaction= inte.get();
+        interaction.setFollowed(true);
+        return interactionService.save(interaction);
+    }
+    @PostMapping("/follow/cancel/{bookId}")
+    public BookInteraction followCancelBook(@PathVariable("bookId") String id, @AuthenticationPrincipal UserDto dto){
+        Book b = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy sách id: " + id));
+        Profile p = authenProfile(dto);
+        Optional<BookInteraction> inte = interactionService.getBookInteraction(b.getId(), p.getId());
+        if(inte.isEmpty()){
+            BookInteraction interaction= new BookInteraction();
+            interaction.setBook(b);
+            interaction.setProfile(p);
+            interaction.setFollowed(false);
+            return interactionService.save(interaction);
+        }
+        BookInteraction interaction= inte.get();
+        interaction.setFollowed(false);
+        return interactionService.save(interaction);
+    }
+    @PostMapping("/nominate/{bookId}")
+    public BookInteraction nomitateBook(@PathVariable("bookId") String id, @AuthenticationPrincipal UserDto dto){
+        Book b = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy sách id: " + id));
+        Profile p = authenProfile(dto);
+        Optional<BookInteraction> inte = interactionService.getBookInteraction(b.getId(), p.getId());
+        if(inte.isEmpty()){
+            BookInteraction interaction= new BookInteraction();
+            interaction.setBook(b);
+            interaction.setProfile(p);
+            interaction.setNominated(true);
+            interaction.setNominalTime(LocalDateTime.now());
+            return interactionService.save(interaction);
+        }
+        BookInteraction interaction= inte.get();
+        interaction.setNominated(true);
+        interaction.setNominalTime(LocalDateTime.now());
+        return interactionService.save(interaction);
+    }
+    @PostMapping("/nominate/cancel/{bookId}")
+    public BookInteraction nomitateCancelBook(@PathVariable("bookId") String id, @AuthenticationPrincipal UserDto dto){
+        Book b = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy sách id: " + id));
+        Profile p = authenProfile(dto);
+        Optional<BookInteraction> inte = interactionService.getBookInteraction(b.getId(), p.getId());
+        if(inte.isEmpty()){
+            BookInteraction interaction= new BookInteraction();
+            interaction.setBook(b);
+            interaction.setProfile(p);
+            interaction.setNominated(false);
+            interaction.setNominalTime(LocalDateTime.now());
+            return interactionService.save(interaction);
+        }
+        BookInteraction interaction= inte.get();
+        interaction.setNominated(false);
+        interaction.setNominalTime(LocalDateTime.now());
+        return interactionService.save(interaction);
+    }
+    @GetMapping("/get/new")
+    public BookPageDto getBookPage(@RequestParam(value = "page", required = false) Optional<Integer> page, @RequestParam(value = "size", required = false) Optional<Integer> size){
+        int currentPage = page.orElse(1);
+        int currentSize = size.orElse(10);
+        return getPage(currentPage,currentSize,"createdAt");
+    }
+
     @GetMapping("/find/{keyword}")
     @Operation(summary = "tìm theo tiêu đề, tên tác giả, thể loại")
     public List<Book> findBook(@PathVariable("keyword") String keyword){
@@ -97,24 +239,39 @@ public class BookController {
 
     @PostMapping("/interactions/read/{bookId}/{pageId}/{page}")
     @Operation(summary = "Cập nhập sách đang đọc của user")
-    public List<BookInteraction> updateBookInteraction(@AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String bookId, @PathVariable("pageId") String pageId, @PathVariable("page") int page) {
-        Profile p = authenProfile(dto);
+    public List<BookInteraction> updateBookInteraction(@AuthenticationPrincipal Optional<UserDto> dto, @PathVariable("bookId") String bookId, @PathVariable("pageId") String pageId, @PathVariable("page") int page) {
         Book b = service.findById(bookId).orElseThrow(() -> new NotFoundException("không tìm thấy book có id: " + bookId));
-        Optional<BookInteraction> find = interactionService.getBookInteraction(b.getId(), p.getId());
         PageBook pageFind = pageService.findById(pageId).orElseThrow(() -> new NotFoundException("không timg thấy page có id là: " + pageId));
-        if (find.isPresent()) {
-            BookInteraction f = find.get();
-            f.setReadCount(page);
-            BookInteraction save = interactionService.save(f);
-            Optional<PageInteraction> pageInteraction = pageInteractionService.findByProfileIDAndPageBookId(p.getId(), pageId);
-            if (pageInteraction.isPresent()) {
-                PageInteraction op = pageInteraction.get();
-                op.setRead(op.getRead() + 1);
-                op.setReadTime(LocalDateTime.now());
-                pageInteractionService.save(op);
+        if(dto.isPresent()) {
+            Profile p = authenProfile(dto.get());
+            Optional<BookInteraction> find = interactionService.getBookInteraction(b.getId(), p.getId());
+            if (find.isPresent()) {
+                BookInteraction f = find.get();
+                f.setReadCount(page);
+                BookInteraction save = interactionService.save(f);
+                Optional<PageInteraction> pageInteraction = pageInteractionService.findByProfileIDAndPageBookId(p.getId(), pageId);
+                if (pageInteraction.isPresent()) {
+                    PageInteraction op = pageInteraction.get();
+                    op.setRead(op.getRead() + 1);
+                    op.setReadTime(LocalDateTime.now());
+                    pageInteractionService.save(op);
+                    List<BookInteraction> list = interactionService.findByProfileId(p.getId());
+                    return list;
+                }
+                PageInteraction interaction = new PageInteraction();
+                interaction.setProfile(p);
+                interaction.setPageBook(pageFind);
+                interaction.setReadTime(LocalDateTime.now());
+                interaction.setRead(1);
+                pageInteractionService.save(interaction);
                 List<BookInteraction> list = interactionService.findByProfileId(p.getId());
                 return list;
             }
+            BookInteraction f = new BookInteraction();
+            f.setBook(b);
+            f.setProfile(p);
+            f.setReadCount(page);
+            BookInteraction save = interactionService.save(f);
             PageInteraction interaction = new PageInteraction();
             interaction.setProfile(p);
             interaction.setPageBook(pageFind);
@@ -124,19 +281,18 @@ public class BookController {
             List<BookInteraction> list = interactionService.findByProfileId(p.getId());
             return list;
         }
-        BookInteraction f = new BookInteraction();
-        f.setBook(b);
-        f.setProfile(p);
-        f.setReadCount(page);
-        BookInteraction save = interactionService.save(f);
-        PageInteraction interaction = new PageInteraction();
-        interaction.setProfile(p);
-        interaction.setPageBook(pageFind);
-        interaction.setReadTime(LocalDateTime.now());
-        interaction.setRead(1);
-        pageInteractionService.save(interaction);
-        List<BookInteraction> list = interactionService.findByProfileId(p.getId());
-        return list;
+        else {
+            BookInteraction f = new BookInteraction();
+            f.setBook(b);
+            f.setReadCount(page);
+            BookInteraction save = interactionService.save(f);
+            PageInteraction interaction = new PageInteraction();
+            interaction.setPageBook(pageFind);
+            interaction.setReadTime(LocalDateTime.now());
+            interaction.setRead(1);
+            PageInteraction s = pageInteractionService.save(interaction);
+            return List.of(save);
+        }
     }
 
     @PostMapping("/genres")
@@ -154,6 +310,8 @@ public class BookController {
         return null;
     }
 
+
+
     public Page<Book> getFilteredBooks(List<Genre> genres, int pageNo, int pageSize) {
         List<Book> books = service.findAll();
         List<Book> result = new ArrayList<>();
@@ -162,11 +320,7 @@ public class BookController {
                 result.add(book);
             }
         }
-        int start = Math.min((pageNo - 1) * pageSize, result.size());
-        int end = Math.min(start + pageSize, result.size());
-        List<Book> pageContent = result.subList(start, end);
-        PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
-        return new PageImpl<>(pageContent, pageRequest, result.size());
+        return converPage(result,pageNo,pageSize);
     }
 
     @GetMapping
@@ -180,24 +334,6 @@ public class BookController {
     public Book save(@RequestBody Book book) {
         return service.save(book);
     }
-
-    @GetMapping("/getAll")
-    @Operation(summary = "Lấy danh sách theo trang", description = "vó thể truyền vào số trang và kích thước trang hoặc không")
-    public BookPageDto getAllBySort(@RequestParam(value = "page", required = false) Optional<Integer> page, @RequestParam(value = "size", required = false) Optional<Integer> size) {
-        int currentPage = page.orElse(1);
-        int currentSize = size.orElse(10);
-        Page<Book> p = service.findPage(currentPage - 1, currentSize, "uploadDate", "asc");
-        int totalPage = p.getTotalPages();
-        if (totalPage > 0) {
-            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPage).boxed().collect(Collectors.toList());
-//            PAGE=currentPage;
-//            SIZE=currentSize;
-            BookPageDto dto = new BookPageDto(p, pageNumbers);
-            return dto;
-        }
-        throw new RuntimeException("Invalid page");
-    }
-
     @GetMapping("/{id}")
     @Operation(summary = "Tìm sách theo id")
     public Book findById(@PathVariable String id) {

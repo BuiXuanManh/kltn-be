@@ -38,6 +38,12 @@ public class ComputedBook {
     @Indexed
     private Double readCount;
     @Indexed
+    private Double readCountDay;
+    @Indexed
+    private Double readCountMonth;
+    @Indexed
+    private Double readCountYear;
+    @Indexed
     private long mark;
     @Indexed
     private long save;
@@ -47,6 +53,12 @@ public class ComputedBook {
     private int reviewCount;
     @Indexed
     private long nominatedCount;
+    @Indexed
+    private long nominatedCountDay;
+    @Indexed
+    private long nominatedCountMonth;
+    @Indexed
+    private long nominatedCountYear;
     @Indexed
     private int commentCount;
     @Indexed

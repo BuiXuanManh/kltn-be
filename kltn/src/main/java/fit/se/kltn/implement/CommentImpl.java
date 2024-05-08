@@ -31,7 +31,7 @@ public class CommentImpl implements CommentService {
 
     @Override
     public List<Comment> findByPageId(String pageId) {
-        return repository.findByPageBook_IdAndType(pageId,Sort.by(Sort.Direction.DESC, "createdAt"),RateType.COMMENT);
+        return repository.findByPageBook_IdAndType(pageId,RateType.COMMENT, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     @Override
@@ -46,6 +46,6 @@ public class CommentImpl implements CommentService {
 
     @Override
     public List<Comment> findByBookIdAndType(String bookId, RateType type) {
-        return repository.findByBook_IdAndType(bookId,type);
+        return repository.findByBook_IdAndType(bookId, type, Sort.by(Sort.Direction.DESC,"createAt" ));
     }
 }
