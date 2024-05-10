@@ -12,6 +12,6 @@ public interface BookService {
     Book save(Book book);
     List<Book> findAll();
     Optional<Book> findById(String id);
-    Optional<Book> findByISBN(String isbn);
     Page<Book> findPage(int pageNo, int pageSize, String sortBy, String sortDerection);
+    Optional<Book> findByTitle(String title);
 }

@@ -1,6 +1,7 @@
 package fit.se.kltn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fit.se.kltn.dto.BookComputed;
 import fit.se.kltn.enums.BookStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,10 +24,8 @@ import java.util.List;
 public class Book {
     @Id
     private String id;
-    private String isbn;
     @Indexed
     private String title;
-    private int pageCount;
     @CreatedDate
     private LocalDateTime createdAt;
     @LastModifiedDate
@@ -42,4 +41,5 @@ public class Book {
     private List<Author> authors;
     @ToString.Include
     private List<Genre> genres;
+    private BookComputed bookComputed;
 }

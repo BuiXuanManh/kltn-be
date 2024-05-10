@@ -7,6 +7,7 @@ import fit.se.kltn.enums.EmoType;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pages")
+@Slf4j
 public class PageController {
     @Qualifier("pageImpl")
     @Autowired
@@ -33,18 +35,19 @@ public class PageController {
     private UserService userService;
     @Autowired
     private RatepageService ratepageService;
+
     @GetMapping("/{pageId}")
-    public PageBook findById(@PathVariable("pageId") String pageId){
-       return service.findById(pageId).orElse(null);
+    public PageBook findById(@PathVariable("pageId") String pageId) {
+        return service.findById(pageId).orElse(null);
     }
 
     @PostMapping("/ratePage/{pageId}")
     @Operation(summary = "thêm đánh giá vào trang")
-    public RatePage addRatePage(@AuthenticationPrincipal UserDto dto,@RequestBody Double rate, @PathVariable("pageId") String id) {
+    public RatePage addRatePage(@AuthenticationPrincipal UserDto dto, @RequestBody Double rate, @PathVariable("pageId") String id) {
         Profile p = authenProfile(dto);
-        PageBook page= service.findById(id).orElseThrow(()->new NotFoundException("không tìm thấy page có id: "+id));
+        PageBook page = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy page có id: " + id));
         Optional<RatePage> ratePage = ratepageService.findByProfileIdAndPageId(p.getId(), page.getId());
-        if(ratePage.isPresent()) {
+        if (ratePage.isPresent()) {
             RatePage rpage = ratePage.get();
             rpage.setRate(rate);
             return ratepageService.save(rpage);
@@ -55,33 +58,37 @@ public class PageController {
         rpage.setRate(rate);
         return ratepageService.save(rpage);
     }
+
     @PostMapping("/save/{bookId}")
-    public void savePage(@RequestBody List<PageBook> pages, @AuthenticationPrincipal UserDto dto,@PathVariable("bookId")String id){
+    public String savePage(@RequestBody List<PageBook> pages, @AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String id) {
         authenProfile(dto);
         Book b = bookService.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy book có id: " + id));
-        if(dto.getRole().equals(ERole.ADMIN)){
-            if(pages.isEmpty())
+        if (dto.getRole().equals(ERole.ADMIN)) {
+            if (pages.isEmpty())
                 throw new RuntimeException("trang rỗng");
-            for(PageBook p:pages){
-                p.setBook(b);
-                service.save(p);
+            for (PageBook p : pages) {
+                    p.setBook(b);
+                    service.save(p);
             }
         }
+        return "ok";
     }
+
     @GetMapping("/ratePage/{pageId}")
     @Operation(summary = "lấy đánh giá theo pageId và profile id ")
-    public RatePage getRatePage(@AuthenticationPrincipal UserDto dto,@PathVariable("pageId") String id) {
+    public RatePage getRatePage(@AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String id) {
         Profile p = authenProfile(dto);
-        PageBook page= service.findById(id).orElseThrow(()->new NotFoundException("không tìm thấy page có id: "+id));
+        PageBook page = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy page có id: " + id));
         Optional<RatePage> ratePage = ratepageService.findByProfileIdAndPageId(p.getId(), page.getId());
-        if(ratePage.isPresent()) {
+        if (ratePage.isPresent()) {
             return ratePage.get();
         }
         return null;
     }
+
     @GetMapping("/book/{bookId}")
     @Operation(summary = "lấy danh sách trang theo book id")
-    public List<PageBook> getPagesByBookId(@PathVariable("bookId") String id){
+    public List<PageBook> getPagesByBookId(@PathVariable("bookId") String id) {
         return service.findByBookId(id);
     }
 
@@ -90,7 +97,7 @@ public class PageController {
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
             return p.get();
-        } else throw new RuntimeException("không tìm thấy profile user có mssv: "+ u.getMssv());
+        } else throw new RuntimeException("không tìm thấy profile user có mssv: " + u.getMssv());
     }
 
     @GetMapping("/interactions/profile/{pageId}")

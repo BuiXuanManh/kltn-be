@@ -50,7 +50,7 @@ public class BookController {
     @Autowired
     private RateBookService rateBookService;
     @Autowired
-    private CommentService commentService;
+    private AuthorService authorService;
     public BookPageDto getPage(Integer page,Integer size,String sortBy){
         Page<Book> p = service.findPage(page - 1, size, sortBy, "desc");
         int totalPage = p.getTotalPages();
@@ -61,11 +61,49 @@ public class BookController {
         }
         throw new RuntimeException("Invalid page");
     }
+    @GetMapping("/title/{title}")
+    public List<Book> find(@PathVariable("title") String title){
+            List<Book> list= service.findAll();
+            return list.stream().filter(b ->
+                 b.getTitle().toLowerCase().contains(title.toLowerCase())
+            ).collect(Collectors.toList());
+    }
     @PostMapping("/save")
-    public Book save(@RequestBody Book book, @AuthenticationPrincipal UserDto dto){
+    public Book save(@RequestBody Book book,@RequestParam("author") String author, @AuthenticationPrincipal UserDto dto){
+        log.info(author+"");
         authenProfile(dto);
         if(dto.getRole().equals(ERole.ADMIN)){
-            /
+            Optional<Book> b = service.findByTitle(book.getTitle().trim());
+            if(b.isPresent()){
+                Book bb = b.get();
+                if(author!=null){
+                    Optional<Author> aut = authorService.findByName(author.trim());
+                    if(aut.isPresent()){
+                        bb.setAuthors(List.of(aut.get()));
+                    }else{
+                        Author a=new Author();
+                        a.setName(author);
+                        Author auth = authorService.save(a);
+                        bb.setAuthors(List.of(auth));
+                    }
+                }
+                bb.setGenres(book.getGenres());
+                bb.setLongDescription(book.getLongDescription());
+                bb.setShortDescription(book.getShortDescription());
+                bb.setUpdateDate(LocalDateTime.now());
+                return service.save(bb);
+            }
+            if(author!=null){
+                Optional<Author> aut = authorService.findByName(author.trim());
+                if(aut.isPresent()){
+                    book.setAuthors(List.of(aut.get()));
+                }else{
+                    Author a=new Author();
+                    a.setName(author);
+                    Author auth = authorService.save(a);
+                    book.setAuthors(List.of(auth));
+                }
+            }
             book.setUpdateDate(LocalDateTime.now());
             book.setCreatedAt(LocalDateTime.now());
             return service.save(book);

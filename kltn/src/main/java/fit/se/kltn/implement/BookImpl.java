@@ -34,16 +34,17 @@ public class BookImpl implements BookService {
         return repository.findById(id);
     }
 
-    @Override
-    public Optional<Book> findByISBN(String isbn) {
-        return repository.findByIsbn(isbn);
-    }
 
     @Override
     public Page<Book> findPage(int pageNo, int pageSize, String sortBy, String sortDerection) {
         Sort sort= Sort.by(Sort.Direction.fromString(sortDerection),sortBy);
         Pageable pageable= PageRequest.of(pageNo,pageSize,sort);
         return repository.findAll(pageable);
+    }
+
+    @Override
+    public Optional<Book> findByTitle(String title) {
+        return repository.findByTitle(title);
     }
 
 }

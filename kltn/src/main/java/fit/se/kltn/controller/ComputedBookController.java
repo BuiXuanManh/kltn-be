@@ -5,14 +5,12 @@ import fit.se.kltn.enums.EmoType;
 import fit.se.kltn.enums.RateType;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -33,24 +31,55 @@ public class ComputedBookController {
     private RatepageService ratepageService;
     @Autowired
     private PageInteractionService pageInteractionService;
+
     @GetMapping("/{bookId}")
     @Operation(summary = "lấy thống kê sách theo sách id")
-    public ComputedBook getComputedBook(@PathVariable("bookId") String bookId){
+    public ComputedBook getComputedBook(@PathVariable("bookId") String bookId) {
         Optional<ComputedBook> find = service.findByBookId(bookId);
         return find.orElse(null);
     }
+
+    @GetMapping("/nominate")
+    @Operation(summary = "Lấy danh sách sách đề cử theo ngày") // Updated summary
+    public List<Book> getNominatedBooksByDate(@RequestParam("date") String date) {
+        List<Book> nominations = bookInteractionService.findRecentNominations(date);
+        return nominations;
+    }
+
+    @GetMapping("/read")
+    public List<Book> getReadBookByDate(@RequestParam("date") String date) {
+        List<Book> pageInteractions = pageInteractionService.findRecentReads(date);
+        return pageInteractions;
+    }
+    @GetMapping("/find")
+    public List<Book> getComputedBookByType(@RequestParam("type") String type) {
+        switch (type) {
+            case "love":
+                return pageInteractionService.findComputedByLove();
+            case "save":
+                return pageInteractionService.findComputedBySave();
+            case "comment":
+                return pageInteractionService.findComputedByComment();
+            case "rate":
+                return pageInteractionService.findComputedByRate();
+            case "rateCount":
+                return pageInteractionService.findComputedByRateCount();
+            default:
+                throw new RuntimeException("lỗi type");
+        }
+    }
     @PostMapping("/interaction/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác của book")
-    public ComputedBook computedInteraction(@PathVariable("bookId") String bookId){
+    public ComputedBook computedInteraction(@PathVariable("bookId") String bookId) {
         Book b = bookService.findById(bookId).orElseThrow(() -> new RuntimeException("không tìm thấy book có id: " + bookId));
         Optional<ComputedBook> com = service.findByBookId(bookId);
         List<BookInteraction> bi = bookInteractionService.findByBookId(b.getId());
-        long save = !bi.isEmpty() ?bi.stream()
+        long save = !bi.isEmpty() ? bi.stream()
                 .filter(BookInteraction::isFollowed)
-                .count():0;
-        long nominated = !bi.isEmpty() ?bi.stream()
+                .count() : 0;
+        long nominated = !bi.isEmpty() ? bi.stream()
                 .filter(BookInteraction::isNominated)
-                .count():0;
+                .count() : 0;
         if (com.isEmpty()) {
             ComputedBook compu = new ComputedBook();
             compu.setBook(b);
@@ -63,37 +92,38 @@ public class ComputedBookController {
         compu.setNominatedCount(nominated);
         return service.save(compu);
     }
+
     @PostMapping("/page/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác page của book")
-    public ComputedBook computedPage(@PathVariable("bookId") String bookId){
+    public ComputedBook computedPage(@PathVariable("bookId") String bookId) {
         Book b = bookService.findById(bookId).orElseThrow(() -> new RuntimeException("không tìm thấy book có id: " + bookId));
         Optional<ComputedBook> com = service.findByBookId(bookId);
         List<PageInteraction> pageInteractions = pageInteractionService.findByBookId(bookId);
         List<RatePage> ratePages = ratepageService.findByBookId(bookId);
-        Double contentPage = !ratePages.isEmpty() ?ratePages.stream()
+        Double contentPage = !ratePages.isEmpty() ? ratePages.stream()
                 .mapToDouble(RatePage::getRate)
-                .sum() / ratePages.size():5;
-        Double readCount = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .sum() / ratePages.size() : 5;
+        Double readCount = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .mapToDouble(PageInteraction::getRead)
-                .sum():0;
-        long lover = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .sum() : 0;
+        long lover = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.LOVE.equals(pi.getType()))
-                .count():0;
-        long sad = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long sad = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.SAD.equals(pi.getType()))
-                .count():0;
-        long angry = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long angry = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.ANGRY.equals(pi.getType()))
-                .count():0;
-        long fun = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long fun = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.FUN.equals(pi.getType()))
-                .count():0;
-        long like = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long like = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.LIKE.equals(pi.getType()))
-                .count():0;
-        long mark = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long mark = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(PageInteraction::isMark)
-                .count():0;
+                .count() : 0;
         if (com.isEmpty()) {
             ComputedBook compu = new ComputedBook();
             compu.setBook(b);
@@ -118,24 +148,25 @@ public class ComputedBookController {
         compu.setReadCount(readCount);
         return service.save(compu);
     }
+
     @PostMapping("/rate/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác rate của book")
-    public ComputedBook computedRate(@PathVariable("bookId") String bookId){
+    public ComputedBook computedRate(@PathVariable("bookId") String bookId) {
         Book b = bookService.findById(bookId).orElseThrow(() -> new RuntimeException("không tìm thấy book có id: " + bookId));
         Optional<ComputedBook> com = service.findByBookId(bookId);
         List<RateBook> rateBooks = rateBookService.findByBookId(bookId);
-        Double helpful = !rateBooks.isEmpty() ?rateBooks.stream()
+        Double helpful = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getHelpful)
-                .sum() / rateBooks.size():5;
-        Double contentBook = !rateBooks.isEmpty() ?rateBooks.stream()
+                .sum() / rateBooks.size() : 5;
+        Double contentBook = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getContentBook)
-                .sum() / rateBooks.size():5;
-        Double understand = !rateBooks.isEmpty() ?rateBooks.stream()
+                .sum() / rateBooks.size() : 5;
+        Double understand = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getUnderstand)
-                .sum() / rateBooks.size():5;
-        Double totalRate = !rateBooks.isEmpty() ?rateBooks.stream()
+                .sum() / rateBooks.size() : 5;
+        Double totalRate = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getTotalRate)
-                .sum() / rateBooks.size():5;
+                .sum() / rateBooks.size() : 5;
         int reviewCount = rateBooks.size();
         if (com.isEmpty()) {
             ComputedBook compu = new ComputedBook();
@@ -155,6 +186,7 @@ public class ComputedBookController {
         compu.setReviewCount(reviewCount);
         return service.save(compu);
     }
+
     @PostMapping("/comment/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác comment của book")
     public ComputedBook computedComment(@PathVariable("bookId") String bookId) {
@@ -172,6 +204,7 @@ public class ComputedBookController {
         compu.setCommentCount(commentCount);
         return service.save(compu);
     }
+
     @PostMapping("/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác của book")
     public ComputedBook computed(@PathVariable("bookId") String bookId) {
@@ -181,48 +214,48 @@ public class ComputedBookController {
         List<Comment> comments = commentService.findByBookIdAndType(bookId, RateType.COMMENT);
         List<PageInteraction> pageInteractions = pageInteractionService.findByBookId(bookId);
         List<RatePage> ratePages = ratepageService.findByBookId(bookId);
-        Double readCount = !pageInteractions.isEmpty() ?pageInteractions.stream()
+        Double readCount = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .mapToDouble(PageInteraction::getRead)
-                .sum():0;
-        long save = !bi.isEmpty() ?bi.stream()
+                .sum() : 0;
+        long save = !bi.isEmpty() ? bi.stream()
                 .filter(BookInteraction::isFollowed)
-                .count():0;
-        long nominated = !bi.isEmpty() ?bi.stream()
+                .count() : 0;
+        long nominated = !bi.isEmpty() ? bi.stream()
                 .filter(BookInteraction::isNominated)
-                .count():0;
+                .count() : 0;
         List<RateBook> rateBooks = rateBookService.findByBookId(bookId);
-        Double helpful = !rateBooks.isEmpty() ?rateBooks.stream()
+        Double helpful = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getHelpful)
-                .sum() / rateBooks.size():5;
-        Double contentBook = !rateBooks.isEmpty() ?rateBooks.stream()
+                .sum() / rateBooks.size() : 5;
+        Double contentBook = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getContentBook)
-                .sum() / rateBooks.size():5;
-        Double understand = !rateBooks.isEmpty() ?rateBooks.stream()
+                .sum() / rateBooks.size() : 5;
+        Double understand = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getUnderstand)
-                .sum() / rateBooks.size():5;
-        Double totalRate = !rateBooks.isEmpty() ?rateBooks.stream()
+                .sum() / rateBooks.size() : 5;
+        Double totalRate = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getTotalRate)
-                .sum() / rateBooks.size():5;
-        Double contentPage = !ratePages.isEmpty() ?ratePages.stream()
+                .sum() / rateBooks.size() : 5;
+        Double contentPage = !ratePages.isEmpty() ? ratePages.stream()
                 .mapToDouble(RatePage::getRate)
-                .sum() / ratePages.size():5;
+                .sum() / ratePages.size() : 5;
         int reviewCount = rateBooks.size();
         int commentCount = comments.size();
-        long lover = !pageInteractions.isEmpty() ?pageInteractions.stream()
+        long lover = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.LOVE.equals(pi.getType()))
-                .count():0;
-        long sad = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long sad = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.SAD.equals(pi.getType()))
-                .count():0;
-        long angry = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long angry = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.ANGRY.equals(pi.getType()))
-                .count():0;
-        long fun = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long fun = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.FUN.equals(pi.getType()))
-                .count():0;
-        long like = !pageInteractions.isEmpty() ?pageInteractions.stream()
+                .count() : 0;
+        long like = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.LIKE.equals(pi.getType()))
-                .count():0;
+                .count() : 0;
         if (com.isEmpty()) {
             ComputedBook compu = new ComputedBook();
             compu.setBook(b);

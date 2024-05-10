@@ -1,9 +1,11 @@
 package fit.se.kltn.services;
 
+import fit.se.kltn.entities.Book;
 import fit.se.kltn.entities.PageInteraction;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -15,4 +17,10 @@ public interface PageInteractionService {
     Optional<PageInteraction> findByProfileIDAndPageBookId(String profileId, String pageBookId);
     PageInteraction save(PageInteraction interaction);
     List<PageInteraction> findByBookId(String bookId);
+    List<Book> findRecentReads(String date);
+    List<Book> findComputedByLove();
+    List<Book> findComputedByComment();
+    List<Book> findComputedByRate();
+    List<Book> findComputedByRateCount();
+    List<Book> findComputedBySave();
 }
