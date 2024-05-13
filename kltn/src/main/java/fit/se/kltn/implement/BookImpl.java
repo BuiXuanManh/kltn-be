@@ -1,6 +1,7 @@
 package fit.se.kltn.implement;
 
 import fit.se.kltn.entities.Book;
+import fit.se.kltn.enums.BookStatus;
 import fit.se.kltn.repositoties.BookRepository;
 import fit.se.kltn.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,23 @@ public class BookImpl implements BookService {
     @Override
     public Optional<Book> findByTitle(String title) {
         return repository.findByTitle(title);
+    }
+
+    @Override
+    public List<Book> findByCreatedAt() {
+        Sort sort= Sort.by(Sort.Direction.fromString("desc"),"createdAt");
+        return repository.findAll(sort);
+    }
+
+    @Override
+    public List<Book> findByUpdateAt() {
+        Sort sort= Sort.by(Sort.Direction.fromString("desc"),"updateDate");
+        return repository.findAll(sort);
+    }
+
+    @Override
+    public List<Book> findByStatus(BookStatus status) {
+        return repository.findByStatus(status);
     }
 
 }

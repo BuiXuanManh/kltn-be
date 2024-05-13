@@ -31,6 +31,7 @@ public class PageInteraction {
     private Profile profile;
     @Indexed
     private LocalDateTime readTime;
+    private LocalDateTime emoTime;
     private EmoType type;
     private int read;
     private boolean mark;

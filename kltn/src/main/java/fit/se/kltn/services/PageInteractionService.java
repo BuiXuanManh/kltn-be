@@ -5,7 +5,6 @@ import fit.se.kltn.entities.PageInteraction;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -23,4 +22,8 @@ public interface PageInteractionService {
     List<Book> findComputedByRate();
     List<Book> findComputedByRateCount();
     List<Book> findComputedBySave();
+    List<Long> findRecentReadsByDate();
+    List<Long> findRecentEmoByDate();
+    List<Long> findRecentCommentByDate();
+    List<Long> findRecentRateByDate();
 }

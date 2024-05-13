@@ -14,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,8 +68,10 @@ public class PageController {
             if (pages.isEmpty())
                 throw new RuntimeException("trang rỗng");
             for (PageBook p : pages) {
-                    p.setBook(b);
-                    service.save(p);
+                p.setBook(b);
+                service.save(p);
+                b.setPageCount(pages.size());
+                bookService.save(b);
             }
         }
         return "ok";
@@ -80,10 +83,7 @@ public class PageController {
         Profile p = authenProfile(dto);
         PageBook page = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy page có id: " + id));
         Optional<RatePage> ratePage = ratepageService.findByProfileIdAndPageId(p.getId(), page.getId());
-        if (ratePage.isPresent()) {
-            return ratePage.get();
-        }
-        return null;
+        return ratePage.orElse(null);
     }
 
     @GetMapping("/book/{bookId}")
@@ -93,6 +93,7 @@ public class PageController {
     }
 
     public Profile authenProfile(UserDto dto) {
+        if(dto==null) return null;
         User u = userService.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
@@ -109,9 +110,18 @@ public class PageController {
     @GetMapping("/interactions/{id}")
     @Operation(summary = "lấy danh sách tương tác theo profile Id và pageId")
     public PageInteraction getInteractionByPageIdandProfileId(@AuthenticationPrincipal UserDto dto, @PathVariable("id") String id) {
+        if (dto == null) return null;
+        if (id == null || id.equals("undefined")) return null;
         Profile p = authenProfile(dto);
-        PageInteraction interaction = validInteraction(id, p.getId());
-        return interaction;
+        return validInteraction(id, p.getId());
+    }
+
+    @PostMapping("/interactions/create/{pageId}")
+    public PageInteraction createBookInteraction(@PathVariable("pageId") String pageId) {
+        PageInteraction interaction = new PageInteraction();
+        interaction.setPageBook(service.findById(pageId).orElseThrow(() -> new NotFoundException("không tìm thấy page có id: " + pageId)));
+        interaction.setRead(1);
+        return interactionService.save(interaction);
     }
 
     @GetMapping("/interactions")
@@ -136,8 +146,7 @@ public class PageController {
     public PageInteraction validInteraction(String id, String profileId) {
         PageBook page = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy page có id: " + id));
         Profile p = profileService.findById(profileId).orElseThrow(() -> new NotFoundException("không tìm thấy profile có id là: " + profileId));
-        PageInteraction interaction = interactionService.findByProfileIDAndPageBookId(p.getId(), page.getId()).orElseThrow(() -> new NotFoundException("không tìm thấy tương tác"));
-        return interaction;
+        return interactionService.findByProfileIDAndPageBookId(p.getId(), page.getId()).orElse(null);
     }
 
     @PostMapping("/emotion/{id}")
@@ -146,6 +155,7 @@ public class PageController {
         Profile p = authenProfile(dto);
         PageInteraction interaction = validInteraction(id, p.getId());
         interaction.setType(type);
+        interaction.setEmoTime(LocalDateTime.now());
         interactionService.save(interaction);
         return interaction;
     }

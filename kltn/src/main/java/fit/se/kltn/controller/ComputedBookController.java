@@ -1,17 +1,29 @@
 package fit.se.kltn.controller;
 
+import fit.se.kltn.dto.BookGenresDto;
+import fit.se.kltn.dto.BookPageDto;
+import fit.se.kltn.dto.ComputedDto;
 import fit.se.kltn.entities.*;
+import fit.se.kltn.enums.BookStatus;
 import fit.se.kltn.enums.EmoType;
 import fit.se.kltn.enums.RateType;
+import fit.se.kltn.enums.UserStatus;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @RestController
 @RequestMapping("/api/computed/books")
@@ -31,7 +43,68 @@ public class ComputedBookController {
     private RatepageService ratepageService;
     @Autowired
     private PageInteractionService pageInteractionService;
-
+    @Autowired
+    private UserService userService;
+    @GetMapping("/nominate/date")
+    @Operation(summary = "get list nominate date")
+    public List<Long> getNominateByDate() {
+       return bookInteractionService.findRecentNominationsByDate();
+    }
+    @GetMapping("/emo/date")
+    @Operation(summary = "get list emo date")
+    public List<Long> getEmoByDate() {
+        return pageInteractionService.findRecentEmoByDate();
+    }
+    @GetMapping("/comment/date")
+    @Operation(summary = "get list emo date")
+    public List<Long> getCommentByDate() {
+        return pageInteractionService.findRecentCommentByDate();
+    }
+    @GetMapping("/rate/date")
+    @Operation(summary = "get list emo date")
+    public List<Long> getRateByDate() {
+        return pageInteractionService.findRecentRateByDate();
+    }
+    @GetMapping("/read/date")
+    @Operation(summary = "get list red date")
+    public List<Long> getReadByDate() {
+        return pageInteractionService.findRecentReadsByDate();
+    }
+    @GetMapping("/total")
+    public ComputedDto getTotal() {
+        List<PageInteraction> pageInteractions= pageInteractionService.getInteractions();
+        int totalReads = !pageInteractions.isEmpty() ? pageInteractions.stream()
+                .mapToInt(PageInteraction::getRead)
+                .sum() : 0;
+        int totalReviews = pageInteractionService.findComputedByRateCount().size();
+        int totalComments = pageInteractionService.findComputedByComment().size();
+        long lover = !pageInteractions.isEmpty() ? pageInteractions.stream()
+                .filter(pi -> EmoType.LOVE.equals(pi.getType()))
+                .count() : 0;
+        long sad = !pageInteractions.isEmpty() ? pageInteractions.stream()
+                .filter(pi -> EmoType.SAD.equals(pi.getType()))
+                .count() : 0;
+        long angry = !pageInteractions.isEmpty() ? pageInteractions.stream()
+                .filter(pi -> EmoType.ANGRY.equals(pi.getType()))
+                .count() : 0;
+        long fun = !pageInteractions.isEmpty() ? pageInteractions.stream()
+                .filter(pi -> EmoType.FUN.equals(pi.getType()))
+                .count() : 0;
+        long like = !pageInteractions.isEmpty() ? pageInteractions.stream()
+                .filter(pi -> EmoType.LIKE.equals(pi.getType()))
+                .count() : 0;
+        long totalEmotions = lover + sad + angry + fun + like;
+        int activeUser = userService.findByStatus(UserStatus.ACTIVE).size();
+        int bookCount = bookService.findByStatus(BookStatus.ACTIVE).size();
+        ComputedDto compu = new ComputedDto();
+        compu.setReadCount(totalReads);
+        compu.setReviewCount(totalReviews);
+        compu.setTotalEmotion(totalEmotions);
+        compu.setCommentCount(totalComments);
+        compu.setActiveUser(activeUser);
+        compu.setBookCount(bookCount);
+        return compu;
+    }
     @GetMapping("/{bookId}")
     @Operation(summary = "lấy thống kê sách theo sách id")
     public ComputedBook getComputedBook(@PathVariable("bookId") String bookId) {
@@ -39,35 +112,113 @@ public class ComputedBookController {
         return find.orElse(null);
     }
 
+    public BookPageDto converPage(List<Book> result, int pageNo, int pageSize, String field) {
+        int start = Math.min((pageNo - 1) * pageSize, result.size());
+        int end = Math.min(start + pageSize, result.size());
+        List<Book> pageContent = result.subList(start, end);
+        PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
+        Page<Book> page = new PageImpl<>(pageContent, pageRequest, result.size());
+        int totalPage = page.getTotalPages();
+        if (totalPage > 0) {
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPage).boxed().collect(Collectors.toList());
+            BookPageDto dto = new BookPageDto(page, pageNumbers, field);
+            return dto;
+        }
+        return null;
+    }
+
+    public BookPageDto getPage(Integer page, Integer size, String sortBy, String field) {
+        Page<Book> p = bookService.findPage(page - 1, size, sortBy, "desc");
+        int totalPage = p.getTotalPages();
+        if (totalPage > 0) {
+            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPage).boxed().collect(Collectors.toList());
+            BookPageDto dto = new BookPageDto(p, pageNumbers, field);
+            return dto;
+        }
+        throw new RuntimeException("Invalid page");
+    }
+
+    @PostMapping("/genres/find")
+    public BookPageDto findBookByGenres(@RequestBody BookGenresDto dto,
+                                        @RequestParam(value = "page", required = false) Optional<Integer> page,
+                                        @RequestParam(value = "size", required = false) Optional<Integer> size) {
+        if (dto == null) throw new RuntimeException("dto is null");
+        List<Book> list = switch (dto.getField()) {
+            case "love" -> pageInteractionService.findComputedByLove();
+            case "save" -> pageInteractionService.findComputedBySave();
+            case "comment" -> pageInteractionService.findComputedByComment();
+            case "rate" -> pageInteractionService.findComputedByRate();
+            case "rateCount" -> pageInteractionService.findComputedByRateCount();
+            case "readtotal" -> pageInteractionService.findRecentReads("total");
+            case "readday" -> pageInteractionService.findRecentReads("day");
+            case "readweek" -> pageInteractionService.findRecentReads("week");
+            case "readmonth" -> pageInteractionService.findRecentReads("month");
+            case "nominatetotal" -> bookInteractionService.findRecentNominations("total");
+            case "nominateday" -> bookInteractionService.findRecentNominations("day");
+            case "nominateweek" -> bookInteractionService.findRecentNominations("week");
+            case "nominatemonth" -> bookInteractionService.findRecentNominations("month");
+            case "createdAt", "new" -> bookService.findByCreatedAt();
+            case "updateDate" -> bookService.findByUpdateAt();
+            default -> throw new IllegalStateException("Unexpected value: " + dto.getField());
+        };
+        int currentPage = page.orElse(1);
+        int currentSize = size.orElse(10);
+        if (dto.getKeyword() != null && !dto.getKeyword().isEmpty()) {
+            list = list.stream().filter(book -> book.getTitle().toLowerCase().contains(dto.getKeyword().toLowerCase())).collect(Collectors.toList());
+        }
+        if (dto.getGenres().isEmpty())
+            return converPage(list, currentPage, currentSize, dto.getField());
+        return getFilteredBooks(dto.getGenres(), list, currentPage, currentSize, dto.getField());
+    }
+
+    public BookPageDto getFilteredBooks(List<Genre> genres, List<Book> books, int pageNo, int pageSize, String field) {
+        List<Book> result = new ArrayList<>();
+        for (Book book : books) {
+            if (book.getGenres().stream().anyMatch(genre -> genres.stream().anyMatch(g -> g.getId().equals(genre.getId())))) {
+                result.add(book);
+            }
+        }
+        return converPage(result, pageNo, pageSize, field);
+    }
+
     @GetMapping("/nominate")
     @Operation(summary = "Lấy danh sách sách đề cử theo ngày") // Updated summary
-    public List<Book> getNominatedBooksByDate(@RequestParam("date") String date) {
+    public BookPageDto getNominatedBooksByDate(@RequestParam("date") String date,
+                                               @RequestParam(value = "page", required = false) Optional<Integer> page,
+                                               @RequestParam(value = "size", required = false) Optional<Integer> size) {
         List<Book> nominations = bookInteractionService.findRecentNominations(date);
-        return nominations;
+        int currentPage = page.orElse(1);
+        int currentSize = size.orElse(10);
+        return converPage(nominations, currentPage, currentSize, "nominate" + date);
     }
 
     @GetMapping("/read")
-    public List<Book> getReadBookByDate(@RequestParam("date") String date) {
+    public BookPageDto getReadBookByDate(@RequestParam("date") String date,
+                                         @RequestParam(value = "page", required = false) Optional<Integer> page,
+                                         @RequestParam(value = "size", required = false) Optional<Integer> size) {
         List<Book> pageInteractions = pageInteractionService.findRecentReads(date);
-        return pageInteractions;
+        int currentPage = page.orElse(1);
+        int currentSize = size.orElse(10);
+        return converPage(pageInteractions, currentPage, currentSize, "read" + date);
     }
+
     @GetMapping("/find")
-    public List<Book> getComputedBookByType(@RequestParam("type") String type) {
-        switch (type) {
-            case "love":
-                return pageInteractionService.findComputedByLove();
-            case "save":
-                return pageInteractionService.findComputedBySave();
-            case "comment":
-                return pageInteractionService.findComputedByComment();
-            case "rate":
-                return pageInteractionService.findComputedByRate();
-            case "rateCount":
-                return pageInteractionService.findComputedByRateCount();
-            default:
-                throw new RuntimeException("lỗi type");
-        }
+    public BookPageDto getComputedBookByType(@RequestParam("type") String type,
+                                             @RequestParam(value = "page", required = false) Optional<Integer> page,
+                                             @RequestParam(value = "size", required = false) Optional<Integer> size) {
+        List<Book> pageInteractions = switch (type) {
+            case "love" -> pageInteractionService.findComputedByLove();
+            case "save" -> pageInteractionService.findComputedBySave();
+            case "comment" -> pageInteractionService.findComputedByComment();
+            case "rate" -> pageInteractionService.findComputedByRate();
+            case "rateCount" -> pageInteractionService.findComputedByRateCount();
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
+        int currentPage = page.orElse(1);
+        int currentSize = size.orElse(10);
+        return converPage(pageInteractions, currentPage, currentSize, type);
     }
+
     @PostMapping("/interaction/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác của book")
     public ComputedBook computedInteraction(@PathVariable("bookId") String bookId) {

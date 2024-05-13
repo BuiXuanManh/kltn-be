@@ -21,4 +21,5 @@ public interface BookInteractionService {
     List<BookInteraction> findByProfileId(String profileId);
     Map<Book, List<BookInteraction>> groupInteractionsByBookId(List<BookInteraction> interactions);
     List<Book> findRecentNominations(String period);
+    List<Long> findRecentNominationsByDate();
 }

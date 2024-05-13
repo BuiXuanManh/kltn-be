@@ -2,6 +2,7 @@ package fit.se.kltn.implement;
 
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.User;
+import fit.se.kltn.enums.UserStatus;
 import fit.se.kltn.repositoties.UserRepository;
 import fit.se.kltn.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -63,5 +64,10 @@ public class UserServiceImpl implements UserService {
                 return dto;
             }
         };
+    }
+
+    @Override
+    public List<User> findByStatus(UserStatus status) {
+        return repository.findByStatus(status);
     }
 }

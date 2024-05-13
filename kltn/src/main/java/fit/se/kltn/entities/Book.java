@@ -21,6 +21,7 @@ import java.util.List;
 @Document(collection = "books")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Book {
     @Id
     private String id;
@@ -34,7 +35,10 @@ public class Book {
     private String image;
     @Indexed
     private String bgImage;
+    private int pageCount;
+    @ToString.Include
     private String shortDescription;
+    @ToString.Include
     private String longDescription;
     private BookStatus status;
     @ToString.Include
