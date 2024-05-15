@@ -2,17 +2,20 @@ package fit.se.kltn.implement;
 
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.User;
+import fit.se.kltn.enums.ERole;
 import fit.se.kltn.enums.UserStatus;
 import fit.se.kltn.repositoties.UserRepository;
 import fit.se.kltn.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,7 +63,7 @@ public class UserServiceImpl implements UserService {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
                 User u = repository.findByMssv(username).orElseThrow(() -> new UsernameNotFoundException("User not found!"));
-                UserDto dto= new UserDto(u);
+                UserDto dto = new UserDto(u);
                 return dto;
             }
         };
@@ -69,5 +72,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findByStatus(UserStatus status) {
         return repository.findByStatus(status);
+    }
+
+    @Override
+    public List<User> findByRole( ERole role) {
+        Sort sort = Sort.by(Sort.Direction.fromString("desc"), "updateAt");
+        return repository.findByRole(role, sort);
+    }
+
+    @Override
+    public List<User> findByCreateAt(LocalDateTime createAt) {
+        return repository.findByCreateAt(createAt);
     }
 }

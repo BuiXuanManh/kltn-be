@@ -18,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ public class UserController {
     private UserService service;
     @Autowired
     private ProfileService profileService;
+   
     public Profile authenProfile(UserDto dto) {
         User u = service.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());

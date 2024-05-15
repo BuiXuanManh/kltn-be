@@ -58,7 +58,6 @@ public class BookController {
 //            book.setStatus(BookStatus.ACTIVE);
 //        return repository.saveAll(l);
 //    }
-
     public BookPageDto getPage(Integer page, Integer size, String sortBy, String field) {
         Page<Book> p = service.findPage(page - 1, size, sortBy, "desc");
         int totalPage = p.getTotalPages();

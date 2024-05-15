@@ -55,7 +55,7 @@ public class UserDto implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !status.equals(UserStatus.LOOKED);
+        return !status.equals(UserStatus.LOCKED);
     }
 
     @Override

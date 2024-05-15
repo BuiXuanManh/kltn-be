@@ -1,10 +1,12 @@
 package fit.se.kltn.services;
 
 import fit.se.kltn.entities.Book;
+import fit.se.kltn.entities.Genre;
 import fit.se.kltn.entities.PageInteraction;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -26,4 +28,5 @@ public interface PageInteractionService {
     List<Long> findRecentEmoByDate();
     List<Long> findRecentCommentByDate();
     List<Long> findRecentRateByDate();
+    List<Long> findUserByDate();
 }

@@ -1,5 +1,6 @@
 package fit.se.kltn.services;
 
+import fit.se.kltn.dto.NominatedBookDto;
 import fit.se.kltn.entities.Book;
 import fit.se.kltn.entities.BookInteraction;
 import org.springframework.stereotype.Service;
@@ -22,4 +23,6 @@ public interface BookInteractionService {
     Map<Book, List<BookInteraction>> groupInteractionsByBookId(List<BookInteraction> interactions);
     List<Book> findRecentNominations(String period);
     List<Long> findRecentNominationsByDate();
+    NominatedBookDto findNominationsWithCounts(String bookId);
+    List<NominatedBookDto> findNominationsListWithCounts();
 }

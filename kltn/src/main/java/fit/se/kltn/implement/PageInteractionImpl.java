@@ -2,10 +2,12 @@ package fit.se.kltn.implement;
 
 import fit.se.kltn.dto.BookComputed;
 import fit.se.kltn.entities.Book;
+import fit.se.kltn.entities.Genre;
 import fit.se.kltn.entities.PageInteraction;
 import fit.se.kltn.repositoties.BookRepository;
 import fit.se.kltn.repositoties.PageInteractionRepository;
 import fit.se.kltn.services.PageInteractionService;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Component
+@Slf4j
 public class PageInteractionImpl implements PageInteractionService {
     @Autowired
     private PageInteractionRepository repository;
@@ -141,9 +144,8 @@ public class PageInteractionImpl implements PageInteractionService {
         AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "page_interactions", Document.class);
         List<Document> mappedResults = results.getMappedResults();
 
-        long totalEmoCount = 0;
+        int totalEmoCount = 0;
         for (Document document : mappedResults) {
-            // Lấy tổng số lượng cảm xúc từ mỗi loại và cộng vào tổng số lượng tổng cộng
             totalEmoCount += document.getInteger("totalEmoCount");
         }
         return totalEmoCount;
@@ -212,6 +214,48 @@ public class PageInteractionImpl implements PageInteractionService {
         list.add(0, l4);
         return list;
     }
+    @Override
+    public List<Long> findUserByDate() {
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime day1 = today.minusDays(1);
+        LocalDateTime day2 = today.minusDays(2);
+        LocalDateTime day3 = today.minusDays(3);
+        LocalDateTime day4 = today.minusDays(4);
+        LocalDateTime day5 = today.minusDays(5);
+        List<Long> list = new ArrayList<>();
+        long l = findRecentUserByDate(today);
+        list.add(0, l);
+        long l0 = findRecentUserByDate(day1);
+        list.add(0, l0);
+        long l1 = findRecentUserByDate(day2);
+        list.add(0, l1);
+        long l2 = findRecentUserByDate(day3);
+        list.add(0, l2);
+        long l3 = findRecentUserByDate(day4);
+        list.add(0, l3);
+        long l4 = findRecentUserByDate(day5);
+        list.add(0, l4);
+        return list;
+    }
+
+
+    public long findRecentUserByDate(LocalDateTime endDate) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("createAt").lte(endDate)),
+                Aggregation.group("id").count().as("totalUserCount")  // Nhóm theo loại cảm xúc và tính tổng số lượng
+        );
+        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "users", Document.class);
+        List<Document> mappedResults = results.getMappedResults();
+
+        long totalEmoCount = 0;
+        for (Document document : mappedResults) {
+            // Lấy tổng số lượng cảm xúc từ mỗi loại và cộng vào tổng số lượng tổng cộng
+            totalEmoCount += document.getInteger("totalUserCount");
+        }
+        return totalEmoCount;
+    }
+
+
 
     public long findRecentRateByDate(LocalDateTime endDate) {
         Aggregation aggregation = Aggregation.newAggregation(
@@ -226,6 +270,8 @@ public class PageInteractionImpl implements PageInteractionService {
             // Lấy tổng số lượng cảm xúc từ mỗi loại và cộng vào tổng số lượng tổng cộng
             totalEmoCount += document.getInteger("totalRateCount");
         }
+        if(totalEmoCount==0)
+            return 1;
         return totalEmoCount;
     }
 

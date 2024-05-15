@@ -53,6 +53,8 @@ public class AuthServiceImpl implements AuthService {
             u.setEmail(dto.getEmail());
             u.setPassword(passwordEncoder.encode(dto.getPassword()));
             u.setStatus(UserStatus.ACTIVE);
+            u.setCreateAt(LocalDateTime.now());
+            u.setUpdateAt(LocalDateTime.now());
             User us = repository.save(u);
             Profile p = new Profile();
             p.setBirthday(dto.getBirthday());
@@ -99,15 +101,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String forgotPassword(String username) {
+    public JwtResponse forgotPassword(String username) {
         User user = repository.findByMssv(username).orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản " + username));
-        if (user.getStatus() == UserStatus.LOOKED) {
+        if (user.getStatus() == UserStatus.LOCKED) {
             throw new RuntimeException("Tài khoản " + username + " đã bị khóa.");
         }
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new RuntimeException("Tài khoản " + user + " không sẵn sàng.");
         }
-        return "sendCodeSuccess";
+        var userdto = repository.findByMssv(username).orElseThrow(() -> new IllegalArgumentException("invalid username"));
+        UserDto dto = new UserDto(userdto);
+        var jwt = jwtService.generateToken(dto);
+        var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), dto);
+        JwtResponse response = new JwtResponse();
+        response.setAccessToken(jwt);
+        response.setRefreshToken(refreshToken);
+        return response;
     }
 
     @Override

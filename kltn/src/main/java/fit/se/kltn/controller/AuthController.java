@@ -40,7 +40,7 @@ public class AuthController {
     }
     @PostMapping("/password/forgot")
     @Operation(summary = "Quên mật khẩu")
-    public ResponseEntity<String> forgotPassword(@RequestBody @Valid UsernameDto dto) {
+    public ResponseEntity<JwtResponse> forgotPassword(@RequestBody @Valid UsernameDto dto) {
         return ResponseEntity.ok(service.forgotPassword(dto.getUsername()));
     }
     @PostMapping("/password/reset")

@@ -1,10 +1,15 @@
 package fit.se.kltn.implement;
 
 import fit.se.kltn.dto.BookComputed;
+import fit.se.kltn.dto.NominatedBookDto;
 import fit.se.kltn.entities.Book;
 import fit.se.kltn.entities.BookInteraction;
+import fit.se.kltn.entities.NominatedBook;
+import fit.se.kltn.enums.NominatedType;
 import fit.se.kltn.repositoties.BookInteractionRepository;
 import fit.se.kltn.repositoties.BookRepository;
+import fit.se.kltn.repositoties.NominatedBookRepository;
+import fit.se.kltn.repositoties.UserRepository;
 import fit.se.kltn.services.BookInteractionService;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -84,6 +89,7 @@ public class BookInteractionImpl implements BookInteractionService {
         return list;
     }
 
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
@@ -149,6 +155,93 @@ public class BookInteractionImpl implements BookInteractionService {
         }
         return list;
     }
+    @Autowired
+    private NominatedBookRepository nominatedBookRepository;
+    @Override
+    public NominatedBookDto findNominationsWithCounts(String bookId) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("nominated").is(true).and("book_id").is(bookId)),
+                Aggregation.group("book_id").count().as("nominatedCount"),
+                Aggregation.sort(Sort.by("nominatedCount").descending()),
+                Aggregation.limit(1)
+        );
+
+        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "book_interactions", Map.class);
+        List<Map> mappedResults = results.getMappedResults();
+        NominatedBook bookCountMap = new NominatedBook();
+        NominatedBookDto dto= new NominatedBookDto();
+        for (Map map : mappedResults) {
+            Integer nominatedCount = (Integer) map.get("nominatedCount");
+            Optional<Book> b = bookRepository.findById(bookId);
+            if (b.isPresent()) {
+                Book bb = b.get();
+                bookCountMap.setBook(bb);
+                Optional<NominatedBook> nomi = nominatedBookRepository.findByBook_Id(bb.getId());
+                if(nomi.isPresent()){
+                    NominatedBook n = nomi.get();
+                    dto.setNominated(nominatedCount);
+                    dto.setNominatedBook(n);
+                }
+                else {
+                    NominatedBook n= new NominatedBook();
+                    n.setBook(bb);
+                    n.setUpdateAt(LocalDateTime.now());
+                    n.setType(NominatedType.ACTIVE);
+                    NominatedBook nn = nominatedBookRepository.save(n);
+                    dto.setNominated(nominatedCount);
+                    dto.setNominatedBook(nn);
+                }
+            }
+        }
+        return dto;
+    }
+    @Override
+    public List<NominatedBookDto> findNominationsListWithCounts() {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("nominated").is(true)),
+                Aggregation.group("book_id").count().as("nominatedCount"),
+                Aggregation.sort(Sort.by("nominatedCount").descending()),
+                Aggregation.limit(6)
+        );
+
+        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "book_interactions", Map.class);
+        List<Map> mappedResults = results.getMappedResults();
+        List<NominatedBookDto> list = new ArrayList<>();
+
+        for (Map map : mappedResults) {
+            ObjectId objectId = (ObjectId) map.get("_id");
+            String bookId = objectId.toHexString();
+            Integer nominatedCount = (Integer) map.get("nominatedCount");
+            Optional<Book> b = bookRepository.findById(bookId);
+
+            if (b.isPresent()) {
+                Book bb = b.get();
+                NominatedBook bookCountMap = new NominatedBook();
+                bookCountMap.setBook(bb);
+
+                Optional<NominatedBook> nomi = nominatedBookRepository.findByBook_Id(bb.getId());
+                NominatedBookDto dto = new NominatedBookDto();
+
+                if (nomi.isPresent()) {
+                    NominatedBook n = nomi.get();
+                    dto.setNominated(nominatedCount);
+                    dto.setNominatedBook(n);
+                    list.add(dto);
+                } else {
+                    NominatedBook n = new NominatedBook();
+                    n.setBook(bb);
+                    n.setUpdateAt(LocalDateTime.now());
+                    n.setType(NominatedType.ACTIVE);
+                    NominatedBook nn = nominatedBookRepository.save(n);
+                    dto.setNominated(nominatedCount);
+                    dto.setNominatedBook(nn);
+                    list.add(dto);
+                }
+            }
+        }
+        return list;
+    }
+
 
     @Override
     public BookInteraction save(BookInteraction bookInteraction) {

@@ -10,6 +10,7 @@ import fit.se.kltn.enums.RateType;
 import fit.se.kltn.enums.UserStatus;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import java.util.stream.IntStream;
 
 @RestController
 @RequestMapping("/api/computed/books")
+@Slf4j
 public class ComputedBookController {
     @Qualifier("computedBookImpl")
     @Autowired
@@ -45,6 +47,73 @@ public class ComputedBookController {
     private PageInteractionService pageInteractionService;
     @Autowired
     private UserService userService;
+    @GetMapping("/user/date")
+    @Operation(summary = "get list user date")
+    public List<Long> getUserByDate() {
+        return pageInteractionService.findUserByDate();
+    }
+    @GetMapping("/genres")
+    @Operation(summary = "get list genres percent")
+    public Map<String, Integer> getGenresByPercent() {
+        List<Book> list = bookService.findAll();
+        Map<String, Long> genreCountMap = new HashMap<>();
+        long totalGenres = 0;
+
+        // Đếm số lượng sách của mỗi thể loại
+        for (Book b : list) {
+            List<Genre> genres = b.getGenres();
+            for (Genre genre : genres) {
+                String genreName = genre.getName();
+                genreCountMap.put(genreName, genreCountMap.getOrDefault(genreName, 0L) + 1);
+                totalGenres++;
+            }
+        }
+
+        // Tính tỷ lệ phần trăm và làm tròn
+        Map<String, Integer> genrePercentMap = new HashMap<>();
+        int totalPercent = 0;
+        for (Map.Entry<String, Long> entry : genreCountMap.entrySet()) {
+            String genreName = entry.getKey();
+            Long count = entry.getValue();
+            int percent = (int) Math.round((double) count / totalGenres * 100);
+            genrePercentMap.put(genreName, percent);
+            totalPercent += percent;
+        }
+
+        // Điều chỉnh để tổng cộng là 100%
+        int difference = 100 - totalPercent;
+        if (difference != 0) {
+            for (Map.Entry<String, Integer> entry : genrePercentMap.entrySet()) {
+                String genreName = entry.getKey();
+                int percent = entry.getValue();
+                genrePercentMap.put(genreName, percent + difference);
+                break;
+            }
+        }
+
+        // Sắp xếp theo phần trăm giảm dần
+        List<Map.Entry<String, Integer>> sortedGenres = new ArrayList<>(genrePercentMap.entrySet());
+        sortedGenres.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        // Lấy ra 3 thể loại có phần trăm cao nhất và tổng hợp phần còn lại
+        Map<String, Integer> result = new LinkedHashMap<>();
+        int othersPercent = 0;
+        for (int i = 0; i < sortedGenres.size(); i++) {
+            if (i < 3) {
+                result.put(sortedGenres.get(i).getKey(), sortedGenres.get(i).getValue());
+            } else {
+                othersPercent += sortedGenres.get(i).getValue();
+            }
+        }
+
+        // Thêm mục "Other" nếu có các thể loại còn lại
+        if (othersPercent > 0) {
+            result.put("Thể loại khác", othersPercent);
+        }
+
+        return result;
+    }
+
     @GetMapping("/nominate/date")
     @Operation(summary = "get list nominate date")
     public List<Long> getNominateByDate() {
@@ -126,18 +195,6 @@ public class ComputedBookController {
         }
         return null;
     }
-
-    public BookPageDto getPage(Integer page, Integer size, String sortBy, String field) {
-        Page<Book> p = bookService.findPage(page - 1, size, sortBy, "desc");
-        int totalPage = p.getTotalPages();
-        if (totalPage > 0) {
-            List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPage).boxed().collect(Collectors.toList());
-            BookPageDto dto = new BookPageDto(p, pageNumbers, field);
-            return dto;
-        }
-        throw new RuntimeException("Invalid page");
-    }
-
     @PostMapping("/genres/find")
     public BookPageDto findBookByGenres(@RequestBody BookGenresDto dto,
                                         @RequestParam(value = "page", required = false) Optional<Integer> page,
