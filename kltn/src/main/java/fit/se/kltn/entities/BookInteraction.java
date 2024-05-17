@@ -36,6 +36,7 @@ public class BookInteraction {
     private LocalDateTime nominalTime;
     @Indexed
     private LocalDateTime readTime;
+    @Indexed
     private int readCount;
 
     public BookInteraction(Book book, Profile profile, int readCount) {

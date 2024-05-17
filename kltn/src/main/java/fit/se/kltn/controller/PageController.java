@@ -51,12 +51,14 @@ public class PageController {
         if (ratePage.isPresent()) {
             RatePage rpage = ratePage.get();
             rpage.setRate(rate);
+            rpage.setBook(page.getBook());
             return ratepageService.save(rpage);
         }
         RatePage rpage = new RatePage();
         rpage.setProfile(p);
         rpage.setPage(page);
         rpage.setRate(rate);
+        rpage.setBook(page.getBook());
         return ratepageService.save(rpage);
     }
 

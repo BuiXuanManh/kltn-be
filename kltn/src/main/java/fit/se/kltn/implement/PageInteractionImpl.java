@@ -178,7 +178,7 @@ public class PageInteractionImpl implements PageInteractionService {
     public long findRecentCommentByDate(LocalDateTime endDate) {
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("createAt").lte(endDate).and("type").is("COMMENT")),
-                Aggregation.group("page_id").count().as("totalCommentCount")  // Nhóm theo loại cảm xúc và tính tổng số lượng
+                Aggregation.group("book_id").count().as("totalCommentCount")  // Nhóm theo loại cảm xúc và tính tổng số lượng
         );
         AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "comments", Document.class);
         List<Document> mappedResults = results.getMappedResults();
@@ -214,6 +214,7 @@ public class PageInteractionImpl implements PageInteractionService {
         list.add(0, l4);
         return list;
     }
+
     @Override
     public List<Long> findUserByDate() {
         LocalDateTime today = LocalDateTime.now();
@@ -256,7 +257,6 @@ public class PageInteractionImpl implements PageInteractionService {
     }
 
 
-
     public long findRecentRateByDate(LocalDateTime endDate) {
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("createAt").lte(endDate).and("type").is("RATE")),
@@ -270,7 +270,7 @@ public class PageInteractionImpl implements PageInteractionService {
             // Lấy tổng số lượng cảm xúc từ mỗi loại và cộng vào tổng số lượng tổng cộng
             totalEmoCount += document.getInteger("totalRateCount");
         }
-        if(totalEmoCount==0)
+        if (totalEmoCount == 0)
             return 1;
         return totalEmoCount;
     }
@@ -321,6 +321,7 @@ public class PageInteractionImpl implements PageInteractionService {
     @Override
     public List<Book> findComputedByComment() {
         Aggregation aggregation = Aggregation.newAggregation(
+//                Aggregation.match(Criteria.where("type").is("COMMENT"))
                 Aggregation.group("book_id").sum("commentCount").as("totalComment"),
                 Aggregation.sort(Sort.by("totalComment").descending())
         );
@@ -347,8 +348,8 @@ public class PageInteractionImpl implements PageInteractionService {
     public List<Book> findComputedByRate() {
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("reviewCount").gt(0)),
-                Aggregation.group("book_id").first("totalRate").as("totalRate"), // Get the first totalRate for each book
-                Aggregation.sort(Sort.by("totalRate").descending())  // Sort by totalRate (descending)
+                Aggregation.group("book_id").first("totalRate").as("totalRates"), // Get the first totalRate for each book
+                Aggregation.sort(Sort.by("totalRates").descending())  // Sort by totalRate (descending)
         );
 
         AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "computed_books", Map.class);
@@ -372,11 +373,11 @@ public class PageInteractionImpl implements PageInteractionService {
     @Override
     public List<Book> findComputedByRateCount() {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.group("book_id").sum("reviewCount").as("totalReviewCount"),
+                Aggregation.group("book_id._id").count().as("totalReviewCount"),
                 Aggregation.sort(Sort.by("totalReviewCount").descending())
         );
 
-        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "computed_books", Map.class);
+        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "rateBooks", Map.class);
         List<Book> list = new ArrayList<>();
         for (Map map : results) {
             ObjectId objectId = (ObjectId) map.get("_id");

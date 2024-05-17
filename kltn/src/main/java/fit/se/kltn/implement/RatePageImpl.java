@@ -45,6 +45,6 @@ public class RatePageImpl implements RatepageService {
 
     @Override
     public List<RatePage> findByBookId(String id) {
-        return repository.findByPage_Book_Id(id);
+        return repository.findByBook_Id(id);
     }
 }

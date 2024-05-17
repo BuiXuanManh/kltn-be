@@ -145,8 +145,16 @@ public class ComputedBookController {
         int totalReads = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .mapToInt(PageInteraction::getRead)
                 .sum() : 0;
-        int totalReviews = pageInteractionService.findComputedByRateCount().size();
-        int totalComments = pageInteractionService.findComputedByComment().size();
+        int totalReviews =0;
+        List<Book> lr = pageInteractionService.findComputedByRateCount();
+        for(Book b:lr){
+            totalReviews=totalReviews+b.getBookComputed().getRateCount();
+        }
+        int totalComments = 0;
+        List<Book> lp = pageInteractionService.findComputedByComment();
+        for(Book b:lp){
+            totalComments=totalComments+b.getBookComputed().getComment();
+        }
         long lover = !pageInteractions.isEmpty() ? pageInteractions.stream()
                 .filter(pi -> EmoType.LOVE.equals(pi.getType()))
                 .count() : 0;
@@ -362,6 +370,7 @@ public class ComputedBookController {
     public ComputedBook computedRate(@PathVariable("bookId") String bookId) {
         Book b = bookService.findById(bookId).orElseThrow(() -> new RuntimeException("không tìm thấy book có id: " + bookId));
         Optional<ComputedBook> com = service.findByBookId(bookId);
+        List<RatePage> ratePages = ratepageService.findByBookId(bookId);
         List<RateBook> rateBooks = rateBookService.findByBookId(bookId);
         Double helpful = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getHelpful)
@@ -375,6 +384,9 @@ public class ComputedBookController {
         Double totalRate = !rateBooks.isEmpty() ? rateBooks.stream()
                 .mapToDouble(RateBook::getTotalRate)
                 .sum() / rateBooks.size() : 5;
+        Double contentPage = !ratePages.isEmpty() ? ratePages.stream()
+                .mapToDouble(RatePage::getRate)
+                .sum() / ratePages.size() : 5;
         int reviewCount = rateBooks.size();
         if (com.isEmpty()) {
             ComputedBook compu = new ComputedBook();
@@ -384,6 +396,7 @@ public class ComputedBookController {
             compu.setUnderstand(understand);
             compu.setTotalRate(totalRate);
             compu.setReviewCount(reviewCount);
+            compu.setContentPage(contentPage);
             return service.save(compu);
         }
         ComputedBook compu = com.get();
@@ -392,6 +405,7 @@ public class ComputedBookController {
         compu.setUnderstand(understand);
         compu.setTotalRate(totalRate);
         compu.setReviewCount(reviewCount);
+        compu.setContentPage(contentPage);
         return service.save(compu);
     }
 

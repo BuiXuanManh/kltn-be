@@ -7,6 +7,7 @@ import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.services.*;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/comments")
+@Slf4j
 public class CommentController {
     @Qualifier("commentImpl")
     @Autowired
@@ -119,15 +121,57 @@ public class CommentController {
         return null;
     }
 
+    @PostMapping("/like/{id}")
+    public Comment handleLike(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto) {
+        Profile p = authenProfile(dto);
+        Comment c = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy comment id: " + id));
+        if (c.getLiker().contains(p)) {
+            c.getLiker().remove(p);
+            return service.save(c);
+        } else {
+            c.getLiker().add(p);
+            return service.save(c);
+        }
+    }
+
+    @PostMapping("/rate/{bookId}")
+    @Operation(summary = "thêm comment vào sách")
+    public Comment saveRate(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String bookId, @RequestParam("parent") Optional<String> parent) {
+        if (content.startsWith("\"") && content.endsWith("\"")) {
+            content = content.substring(1, content.length() - 1);
+        }
+        Profile p = authenProfile(dto);
+        Book pb = bookService.findById(bookId).orElseThrow(() -> new NotFoundException("Không tìm thấy sách có id: " + bookId));
+        Comment comment = new Comment();
+        if (parent.isPresent() && !parent.get().equals("undefined")) {
+            Comment f = service.findById(parent.get()).orElseThrow(() -> new NotFoundException("không tìm thấy comment id: " + parent.get()));
+            f.setChildrenCount(f.getChildrenCount() + 1);
+            Comment a = service.save(f);
+            comment.setParent(a);
+        }
+        comment.setCreateAt(LocalDateTime.now());
+        comment.setContent(content);
+        comment.setProfile(p);
+        comment.setBook(pb);
+        comment.setType(RateType.RATE);
+        return service.save(comment);
+    }
+
     @PostMapping("/{pageId}")
     @Operation(summary = "thêm comment vào page")
-    public Comment save(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId) {
+    public Comment save(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("pageId") String pageId, @RequestParam("parent") Optional<String> parent) {
         if (content.startsWith("\"") && content.endsWith("\"")) {
             content = content.substring(1, content.length() - 1);
         }
         Profile p = authenProfile(dto);
         PageBook pb = pageService.findById(pageId).orElseThrow(() -> new NotFoundException("Không tìm thấy page có id: " + pageId));
         Comment comment = new Comment();
+        if (parent.isPresent() && !parent.get().equals("undefined")) {
+            Comment f = service.findById(parent.get()).orElseThrow(() -> new NotFoundException("không tìm thấy comment id: " + parent.get()));
+            comment.setParent(f);
+            f.setChildrenCount(f.getChildrenCount() + 1);
+            service.save(f);
+        }
         comment.setCreateAt(LocalDateTime.now());
         comment.setContent(content);
         comment.setPageBook(pb);
@@ -136,15 +180,23 @@ public class CommentController {
         comment.setType(RateType.COMMENT);
         return service.save(comment);
     }
+
     @PostMapping("/book/{bookId}")
     @Operation(summary = "thêm comment vào book")
-    public Comment saveByBookId(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String id) {
+    public Comment saveByBookId(@RequestBody String content, @AuthenticationPrincipal UserDto dto, @PathVariable("bookId") String id, @RequestParam("parent") Optional<String> parent) {
         if (content.startsWith("\"") && content.endsWith("\"")) {
             content = content.substring(1, content.length() - 1);
         }
+
         Profile p = authenProfile(dto);
         Book pb = bookService.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy book có id: " + id));
         Comment comment = new Comment();
+        if (parent.isPresent() && !parent.get().equals("undefined")) {
+            Comment f = service.findById(parent.get()).orElseThrow(() -> new NotFoundException("không tìm thấy comment id: " + parent.get()));
+            f.setChildrenCount(f.getChildrenCount() + 1);
+            Comment a = service.save(f);
+            comment.setParent(a);
+        }
         comment.setCreateAt(LocalDateTime.now());
         comment.setContent(content);
         comment.setProfile(p);

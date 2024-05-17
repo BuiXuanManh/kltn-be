@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -27,4 +28,8 @@ public class RatePage {
     private PageBook page;
     @Min(1) @Max(5)
     private Double rate;
+    @Field("book_id")
+    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    @DocumentReference(lazy = true)
+    private Book book;
 }

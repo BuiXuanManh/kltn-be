@@ -243,7 +243,7 @@ public class BookController {
     public BookPageDto findBook(@RequestParam("keyword") String keyword,
                                 @RequestParam(value = "page", required = false) Optional<Integer> page,
                                 @RequestParam(value = "size", required = false) Optional<Integer> size) {
-        List<Book> list = service.findAll();
+        List<Book> list = service.findByCreatedAt();
         List<Book> l = list.stream().filter(b -> {
             if (b.getTitle().toLowerCase().contains(keyword.toLowerCase())) {
                 return true;
@@ -271,8 +271,7 @@ public class BookController {
     public RateBook findRateBookByProfileIdAndBookId(@AuthenticationPrincipal UserDto dto, @PathVariable("id") String id) {
         Profile p = authenProfile(dto);
         Book page = service.findById(id).orElseThrow(() -> new NotFoundException("khÔng tìm thấy book có id: " + id));
-        RateBook rate = rateBookService.findByProfileIdAndBookId(p.getId(), page.getId()).orElseThrow(() -> new NotFoundException("không tìm thấy đánh giá sách"));
-        return rate;
+        return rateBookService.findByProfileIdAndBookId(p.getId(), page.getId()).orElse(null);
     }
 
     public Profile authenProfile(UserDto dto) {

@@ -12,5 +12,5 @@ public interface RatePageRepository extends MongoRepository<RatePage,String> {
     List<RatePage> findByPageBook_Id(String id);
     List<RatePage> findByProfile_Id(String id);
     Optional<RatePage> findByProfile_IdAndPageBook_Id(String profileId, String pageId);
-    List<RatePage> findByPage_Book_Id(String bookId);
+    List<RatePage> findByBook_Id(String bookId);
 }
