@@ -2,6 +2,7 @@ package fit.se.kltn.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import fit.se.kltn.enums.InteractionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,7 +24,7 @@ public class BookInteraction {
     @Id
     private String id;
     @Field("book_id")
-    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    @JsonIncludeProperties({"id", "title", "pageCount", "uploadDate", "image", "bgImage", "authors","updateDate"})
     @DocumentReference(lazy = true)
     private Book book;
     @Field("profile_id")
@@ -38,6 +39,7 @@ public class BookInteraction {
     private LocalDateTime readTime;
     @Indexed
     private int readCount;
+    private InteractionStatus status;
 
     public BookInteraction(Book book, Profile profile, int readCount) {
         this.book = book;

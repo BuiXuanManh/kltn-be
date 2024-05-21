@@ -1,10 +1,13 @@
 package fit.se.kltn.controller;
 
 import fit.se.kltn.dto.BookPageDto;
+import fit.se.kltn.dto.CommentDto;
+import fit.se.kltn.dto.RateDto;
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.*;
 import fit.se.kltn.enums.BookStatus;
 import fit.se.kltn.enums.ERole;
+import fit.se.kltn.enums.InteractionStatus;
 import fit.se.kltn.exception.NotFoundException;
 import fit.se.kltn.repositoties.BookRepository;
 import fit.se.kltn.services.*;
@@ -15,12 +18,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,15 +54,44 @@ public class BookController {
     private RateBookService rateBookService;
     @Autowired
     private AuthorService authorService;
-
+    @Autowired
+    private ComputedBookService computedBookService;
 //    @GetMapping("/saves")
 //    @Operation(summary = "Saves")
-//    public List<Book> saveslist() {
-//        List<Book> l = service.findAll();
-//        for (Book book : l)
-//            book.setStatus(BookStatus.ACTIVE);
-//        return repository.saveAll(l);
+//    public List<BookInteraction> saveslist() {
+//        List<BookInteraction> l = interactionService.findAll();
+//        for (BookInteraction book : l) {
+//            book.setStatus(InteractionStatus.ACTIVE);
+//            interactionService.save(book);
+//        }
+//        return interactionService.findAll();
 //    }
+    @PostMapping("/interaction/delete/{InteractionId}")
+    public BookInteraction deleteInteraction(@PathVariable("InteractionId") String id, @AuthenticationPrincipal UserDto dto){
+        Profile p = authenProfile(dto);
+        BookInteraction f = interactionService.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy tương tác có id: " + id));
+        f.setStatus(InteractionStatus.DELETE);
+        return interactionService.save(f);
+    }
+    @GetMapping("/nominate/total")
+    public BookPageDto findByNominated(@RequestParam(defaultValue = "1") int page,
+                                             @RequestParam(defaultValue = "12") int size){
+        List<Book> l = interactionService.findRecentNominations("total");
+        return converPage(l,page,size,"nominatetotal");
+    }
+    @GetMapping("/new/total")
+    public BookPageDto findByNewBook(@RequestParam(defaultValue = "1") int page,
+                                       @RequestParam(defaultValue = "12") int size){
+        List<Book> l = service.findByCreatedAt();
+        return converPage(l,page,size,"createdAt");
+    }
+    @GetMapping("/interactions/save")
+    public List<BookInteraction> getInteractionBySave(@AuthenticationPrincipal UserDto dto){
+        Profile p = authenProfile(dto);
+        List<BookInteraction> list = interactionService.findByProfileId(p.getId());
+        Collections.reverse(list);
+        return list;
+    }
     public BookPageDto getPage(Integer page, Integer size, String sortBy, String field) {
         Page<Book> p = service.findPage(page - 1, size, sortBy, "desc");
         int totalPage = p.getTotalPages();
@@ -67,6 +101,29 @@ public class BookController {
             return dto;
         }
         throw new RuntimeException("Invalid page");
+    }
+    @GetMapping("/rate/recent")
+    public Page<RateDto> getComments(@RequestParam(defaultValue = "1") int page,
+                                     @RequestParam(defaultValue = "8") int size) {
+        List<ComputedBook> listcompu = computedBookService.getAll();
+        List<Book> books = pageInteractionService.findRecentReads("total");
+        List<RateDto> dtos = new ArrayList<>();
+        books.forEach(book -> {
+            listcompu.stream()
+                    .filter(e -> e.getBook().getId().equals(book.getId()))
+                    .findFirst()
+                    .ifPresent(e -> {
+                        RateDto dto = new RateDto();
+                        dto.setBook(book);
+                        dto.setRate(e.getTotalRate());
+                        dtos.add(dto);
+                    });
+        });
+        Pageable pageable = PageRequest.of(page - 1, size);
+        int start = Math.min((int) pageable.getOffset(), dtos.size());
+        int end = Math.min((start + pageable.getPageSize()), dtos.size());
+        Page<RateDto> pageResult = new PageImpl<>(dtos.subList(start, end), pageable, dtos.size());
+        return pageResult;
     }
 
     public BookPageDto converPage(List<Book> result, int pageNo, int pageSize, String field) {

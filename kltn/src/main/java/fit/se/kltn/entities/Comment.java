@@ -31,7 +31,7 @@ public class Comment {
     @DocumentReference(lazy = true)
     private Comment parent;
     @Field("book_id")
-    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors","shortDescription"})
     @DocumentReference(lazy = true)
     private Book book;
     @Indexed

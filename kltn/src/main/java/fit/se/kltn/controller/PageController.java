@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +37,13 @@ public class PageController {
     private UserService userService;
     @Autowired
     private RatepageService ratepageService;
-
+    @GetMapping("/interactions/mark")
+    private List<PageInteraction> getPageInteractions(@AuthenticationPrincipal UserDto dto) {
+        Profile p = authenProfile(dto);
+        List<PageInteraction> interactions = interactionService.findByProfileIdAndMark(p.getId());
+        Collections.reverse(interactions);
+        return interactions;
+    }
     @GetMapping("/{pageId}")
     public PageBook findById(@PathVariable("pageId") String pageId) {
         return service.findById(pageId).orElse(null);

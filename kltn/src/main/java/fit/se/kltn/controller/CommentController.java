@@ -1,5 +1,6 @@
 package fit.se.kltn.controller;
 
+import fit.se.kltn.dto.CommentDto;
 import fit.se.kltn.dto.UserDto;
 import fit.se.kltn.entities.*;
 import fit.se.kltn.enums.RateType;
@@ -10,11 +11,16 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +41,33 @@ public class CommentController {
     private UserService userService;
     @Autowired
     private RateBookService rateBookService;
+    @Autowired
+    private ComputedBookService computedBookService;
+
+    @GetMapping("/rate/recent")
+    public Page<CommentDto> getComments(@RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "7") int size) {
+        List<ComputedBook> listcompu = computedBookService.getAll();
+        List<Comment> comments = service.findByRecentAndType();
+        List<CommentDto> dtos = new ArrayList<>();
+        comments.forEach(comment -> {
+            listcompu.stream()
+                    .filter(e -> e.getBook().getId().equals(comment.getBook().getId()))
+                    .findFirst()
+                    .ifPresent(e -> {
+                        CommentDto dto = new CommentDto();
+                        dto.setComment(comment);
+                        dto.setRate(e.getTotalRate());
+                        dtos.add(dto);
+                    });
+        });
+        Pageable pageable = PageRequest.of(page - 1, size);
+        int start = Math.min((int) pageable.getOffset(), dtos.size());
+        int end = Math.min((start + pageable.getPageSize()), dtos.size());
+        Page<CommentDto> pageResult = new PageImpl<>(dtos.subList(start, end), pageable, dtos.size());
+        return pageResult;
+    }
+
 
     @GetMapping("/page/get/{pageId}")
     @Operation(summary = "lấy comment theo pageId và profile id")

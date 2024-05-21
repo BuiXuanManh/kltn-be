@@ -48,4 +48,9 @@ public class CommentImpl implements CommentService {
     public List<Comment> findByBookIdAndType(String bookId, RateType type) {
         return repository.findByBook_IdAndType(bookId, type, Sort.by(Sort.Direction.DESC,"createAt" ));
     }
+
+    @Override
+    public List<Comment> findByRecentAndType() {
+        return repository.findByTypeAndRateGreaterThanEqual(RateType.RATE,1.0, Sort.by(Sort.Direction.DESC,"createAt" ));
+    }
 }

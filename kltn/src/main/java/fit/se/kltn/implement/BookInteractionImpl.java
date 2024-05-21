@@ -5,6 +5,7 @@ import fit.se.kltn.dto.NominatedBookDto;
 import fit.se.kltn.entities.Book;
 import fit.se.kltn.entities.BookInteraction;
 import fit.se.kltn.entities.NominatedBook;
+import fit.se.kltn.enums.InteractionStatus;
 import fit.se.kltn.enums.NominatedType;
 import fit.se.kltn.repositoties.BookInteractionRepository;
 import fit.se.kltn.repositoties.BookRepository;
@@ -155,8 +156,10 @@ public class BookInteractionImpl implements BookInteractionService {
         }
         return list;
     }
+
     @Autowired
     private NominatedBookRepository nominatedBookRepository;
+
     @Override
     public NominatedBookDto findNominationsWithCounts(String bookId) {
         Aggregation aggregation = Aggregation.newAggregation(
@@ -169,7 +172,7 @@ public class BookInteractionImpl implements BookInteractionService {
         AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "book_interactions", Map.class);
         List<Map> mappedResults = results.getMappedResults();
         NominatedBook bookCountMap = new NominatedBook();
-        NominatedBookDto dto= new NominatedBookDto();
+        NominatedBookDto dto = new NominatedBookDto();
         for (Map map : mappedResults) {
             Integer nominatedCount = (Integer) map.get("nominatedCount");
             Optional<Book> b = bookRepository.findById(bookId);
@@ -177,13 +180,12 @@ public class BookInteractionImpl implements BookInteractionService {
                 Book bb = b.get();
                 bookCountMap.setBook(bb);
                 Optional<NominatedBook> nomi = nominatedBookRepository.findByBook_Id(bb.getId());
-                if(nomi.isPresent()){
+                if (nomi.isPresent()) {
                     NominatedBook n = nomi.get();
                     dto.setNominated(nominatedCount);
                     dto.setNominatedBook(n);
-                }
-                else {
-                    NominatedBook n= new NominatedBook();
+                } else {
+                    NominatedBook n = new NominatedBook();
                     n.setBook(bb);
                     n.setUpdateAt(LocalDateTime.now());
                     n.setType(NominatedType.ACTIVE);
@@ -195,6 +197,7 @@ public class BookInteractionImpl implements BookInteractionService {
         }
         return dto;
     }
+
     @Override
     public List<NominatedBookDto> findNominationsListWithCounts() {
         Aggregation aggregation = Aggregation.newAggregation(
@@ -265,6 +268,6 @@ public class BookInteractionImpl implements BookInteractionService {
 
     @Override
     public List<BookInteraction> findByProfileId(String profileId) {
-        return repository.findByProfile_Id(profileId);
+        return repository.findByProfile_IdAndStatus(profileId, InteractionStatus.ACTIVE);
     }
 }

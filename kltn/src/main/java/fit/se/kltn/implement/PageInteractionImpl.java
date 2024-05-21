@@ -239,6 +239,11 @@ public class PageInteractionImpl implements PageInteractionService {
         return list;
     }
 
+    @Override
+    public List<PageInteraction> findByProfileIdAndMark(String pId) {
+        return repository.findByProfile_IdAndMark(pId, true);
+    }
+
 
     public long findRecentUserByDate(LocalDateTime endDate) {
         Aggregation aggregation = Aggregation.newAggregation(
@@ -357,7 +362,7 @@ public class PageInteractionImpl implements PageInteractionService {
         for (Map map : results) {
             ObjectId objectId = (ObjectId) map.get("_id");
             String bookId = objectId.toHexString();
-            Double totalReadCount = (Double) map.get("totalRate");
+            Double totalReadCount = (Double) map.get("totalRates");
             Optional<Book> b = bookRepository.findById(bookId);
             if (b.isPresent()) {
                 Book bb = b.get();

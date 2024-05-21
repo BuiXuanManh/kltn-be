@@ -18,4 +18,5 @@ public interface PageInteractionRepository extends MongoRepository<PageInteracti
     List<PageInteraction> findByPageBook_Book_Id(String bookId);
     @Query("{ 'readTime' : { $gte: ?0, $lt: ?1 } }")
     List<PageInteraction> findByReadDateRange(LocalDateTime startDate, LocalDateTime endDate);
+    List<PageInteraction> findByProfile_IdAndMark(String pId, boolean mark);
 }

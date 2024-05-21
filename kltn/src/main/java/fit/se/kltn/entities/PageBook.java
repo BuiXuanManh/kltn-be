@@ -26,10 +26,9 @@ public class PageBook {
     private String content;
     @DocumentReference(lazy = true)
     @Field("book_id")
-    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors"})
+    @JsonIncludeProperties({"id", "title","pageCount","uploadDate","image","bgImage","authors","pageCount","updateDate"})
     @ToString.Include
     private Book book;
-//    private
     public PageBook(String name, int pageNo, String content, Book book) {
         this.name = name;
         this.pageNo = pageNo;

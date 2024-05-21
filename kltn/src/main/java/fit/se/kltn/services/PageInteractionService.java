@@ -29,4 +29,5 @@ public interface PageInteractionService {
     List<Long> findRecentCommentByDate();
     List<Long> findRecentRateByDate();
     List<Long> findUserByDate();
+    List<PageInteraction> findByProfileIdAndMark(String pId);
 }

@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,6 @@ public interface CommentRepository extends MongoRepository<Comment, String> {
     Optional<Comment> findByProfile_IdAndBook_IdAndType(String pId,String bookId, RateType type);
     Optional<Comment> findByProfile_IdAndPageBook_IdAndType(String pId,String pageId, RateType type);
     List<Comment> findByBook_IdAndType(String bookId, RateType type, Sort sort);
+    @Query("{ 'type' : ?0, 'rate' : { $gte : ?1 } }")
+    List<Comment> findByTypeAndRateGreaterThanEqual(RateType type, Double rateValue, Sort sort);
 }
