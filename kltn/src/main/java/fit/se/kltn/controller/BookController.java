@@ -56,7 +56,8 @@ public class BookController {
     private AuthorService authorService;
     @Autowired
     private ComputedBookService computedBookService;
-//    @GetMapping("/saves")
+
+    //    @GetMapping("/saves")
 //    @Operation(summary = "Saves")
 //    public List<BookInteraction> saveslist() {
 //        List<BookInteraction> l = interactionService.findAll();
@@ -67,31 +68,35 @@ public class BookController {
 //        return interactionService.findAll();
 //    }
     @PostMapping("/interaction/delete/{InteractionId}")
-    public BookInteraction deleteInteraction(@PathVariable("InteractionId") String id, @AuthenticationPrincipal UserDto dto){
+    public BookInteraction deleteInteraction(@PathVariable("InteractionId") String id, @AuthenticationPrincipal UserDto dto) {
         Profile p = authenProfile(dto);
         BookInteraction f = interactionService.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy tương tác có id: " + id));
         f.setStatus(InteractionStatus.DELETE);
         return interactionService.save(f);
     }
+
     @GetMapping("/nominate/total")
     public BookPageDto findByNominated(@RequestParam(defaultValue = "1") int page,
-                                             @RequestParam(defaultValue = "12") int size){
+                                       @RequestParam(defaultValue = "12") int size) {
         List<Book> l = interactionService.findRecentNominations("total");
-        return converPage(l,page,size,"nominatetotal");
+        return converPage(l, page, size, "nominatetotal");
     }
+
     @GetMapping("/new/total")
     public BookPageDto findByNewBook(@RequestParam(defaultValue = "1") int page,
-                                       @RequestParam(defaultValue = "12") int size){
+                                     @RequestParam(defaultValue = "12") int size) {
         List<Book> l = service.findByCreatedAt();
-        return converPage(l,page,size,"createdAt");
+        return converPage(l, page, size, "createdAt");
     }
+
     @GetMapping("/interactions/save")
-    public List<BookInteraction> getInteractionBySave(@AuthenticationPrincipal UserDto dto){
+    public List<BookInteraction> getInteractionBySave(@AuthenticationPrincipal UserDto dto) {
         Profile p = authenProfile(dto);
         List<BookInteraction> list = interactionService.findByProfileId(p.getId());
         Collections.reverse(list);
         return list;
     }
+
     public BookPageDto getPage(Integer page, Integer size, String sortBy, String field) {
         Page<Book> p = service.findPage(page - 1, size, sortBy, "desc");
         int totalPage = p.getTotalPages();
@@ -102,6 +107,7 @@ public class BookController {
         }
         throw new RuntimeException("Invalid page");
     }
+
     @GetMapping("/rate/recent")
     public Page<RateDto> getComments(@RequestParam(defaultValue = "1") int page,
                                      @RequestParam(defaultValue = "8") int size) {
@@ -158,47 +164,75 @@ public class BookController {
     @PostMapping("/save")
     public Book save(@RequestBody Book book, @RequestParam("author") String author, @AuthenticationPrincipal UserDto dto) {
         authenProfile(dto);
-        if (dto.getRole().equals(ERole.ADMIN)) {
-            Optional<Book> b = service.findByTitle(book.getTitle().trim());
-            if (b.isPresent()) {
-                Book bb = b.get();
+
+        if (!dto.getRole().equals(ERole.ADMIN)) {
+            throw new RuntimeException("bạn không phải admin");
+        }
+
+        Optional<Book> existingBookOpt = service.findByTitle(book.getTitle().trim());
+        LocalDateTime now = LocalDateTime.now();
+
+        if (existingBookOpt.isPresent()) {
+            Book existingBook = existingBookOpt.get();
+            boolean hasDuplicateAuthor = existingBook.getAuthors().stream()
+                    .anyMatch(existingAuthor -> existingAuthor.getName().equals(author));
+
+            if (author != null) {
+                Optional<Author> authorOpt = authorService.findByName(author.trim());
+                if (authorOpt.isPresent()) {
+                    existingBook.setAuthors(List.of(authorOpt.get()));
+                } else {
+                    Author newAuthor = new Author();
+                    newAuthor.setName(author);
+                    Author savedAuthor = authorService.save(newAuthor);
+                    existingBook.setAuthors(List.of(savedAuthor));
+                }
+            }
+
+            if (hasDuplicateAuthor) {
+                existingBook.setGenres(book.getGenres());
+                existingBook.setLongDescription(book.getLongDescription());
+                existingBook.setShortDescription(book.getShortDescription());
+                existingBook.setUpdateDate(now);
+                existingBook.setBgImage(book.getBgImage());
+                existingBook.setImage(book.getImage());
+                existingBook.setStatus(BookStatus.ACTIVE);
+                return service.save(existingBook);
+            } else {
                 if (author != null) {
-                    Optional<Author> aut = authorService.findByName(author.trim());
-                    if (aut.isPresent()) {
-                        bb.setAuthors(List.of(aut.get()));
+                    Optional<Author> authorOpt = authorService.findByName(author.trim());
+                    if (authorOpt.isPresent()) {
+                        book.setAuthors(List.of(authorOpt.get()));
                     } else {
-                        Author a = new Author();
-                        a.setName(author);
-                        Author auth = authorService.save(a);
-                        bb.setAuthors(List.of(auth));
+                        Author newAuthor = new Author();
+                        newAuthor.setName(author);
+                        Author savedAuthor = authorService.save(newAuthor);
+                        book.setAuthors(List.of(savedAuthor));
                     }
                 }
-                bb.setGenres(book.getGenres());
-                bb.setLongDescription(book.getLongDescription());
-                bb.setShortDescription(book.getShortDescription());
-                bb.setUpdateDate(LocalDateTime.now());
-                bb.setBgImage(book.getBgImage());
-                bb.setImage(book.getImage());
-                bb.setStatus(BookStatus.ACTIVE);
-                return service.save(bb);
+                book.setUpdateDate(now);
+                book.setCreatedAt(now);
+                return service.save(book);
             }
-            if (author != null) {
-                Optional<Author> aut = authorService.findByName(author.trim());
-                if (aut.isPresent()) {
-                    book.setAuthors(List.of(aut.get()));
-                } else {
-                    Author a = new Author();
-                    a.setName(author);
-                    Author auth = authorService.save(a);
-                    book.setAuthors(List.of(auth));
-                }
-            }
-            book.setUpdateDate(LocalDateTime.now());
-            book.setCreatedAt(LocalDateTime.now());
-            return service.save(book);
         }
-        throw new RuntimeException("bạn không phải admin");
+
+        if (author != null) {
+            Optional<Author> authorOpt = authorService.findByName(author.trim());
+            if (authorOpt.isPresent()) {
+                book.setAuthors(List.of(authorOpt.get()));
+            } else {
+                Author newAuthor = new Author();
+                newAuthor.setName(author);
+                Author savedAuthor = authorService.save(newAuthor);
+                book.setAuthors(List.of(savedAuthor));
+            }
+        }
+
+        book.setUpdateDate(now);
+        book.setCreatedAt(now);
+        return service.save(book);
     }
+
 
     @GetMapping("/getAll")
     @Operation(summary = "Lấy danh sách theo trang", description = "có thể truyền vào số trang và kích thước trang hoặc không")
@@ -207,6 +241,7 @@ public class BookController {
         int currentSize = size.orElse(10);
         return getPage(currentPage, currentSize, field, field);
     }
+
     @GetMapping("/interaction/{id}")
     public BookInteraction getInteraction(@PathVariable("id") String id, @AuthenticationPrincipal UserDto dto) {
         Book b = service.findById(id).orElseThrow(() -> new NotFoundException("không tìm thấy sách id: " + id));

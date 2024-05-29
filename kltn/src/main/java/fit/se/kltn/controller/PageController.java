@@ -37,6 +37,7 @@ public class PageController {
     private UserService userService;
     @Autowired
     private RatepageService ratepageService;
+
     @GetMapping("/interactions/mark")
     private List<PageInteraction> getPageInteractions(@AuthenticationPrincipal UserDto dto) {
         Profile p = authenProfile(dto);
@@ -44,6 +45,7 @@ public class PageController {
         Collections.reverse(interactions);
         return interactions;
     }
+
     @GetMapping("/{pageId}")
     public PageBook findById(@PathVariable("pageId") String pageId) {
         return service.findById(pageId).orElse(null);
@@ -77,8 +79,14 @@ public class PageController {
             if (pages.isEmpty())
                 throw new RuntimeException("trang rỗng");
             for (PageBook p : pages) {
-                p.setBook(b);
-                service.save(p);
+                Optional<PageBook> page = service.findByBookIdAndPageNo(b.getId(), p.getPageNo());
+                if (page.isPresent()) {
+                    PageBook pp = page.get();
+                    service.save(pp);
+                } else {
+                    p.setBook(b);
+                    service.save(p);
+                }
                 b.setPageCount(pages.size());
                 bookService.save(b);
             }
@@ -102,7 +110,7 @@ public class PageController {
     }
 
     public Profile authenProfile(UserDto dto) {
-        if(dto==null) return null;
+        if (dto == null) return null;
         User u = userService.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {

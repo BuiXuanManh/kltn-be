@@ -12,4 +12,5 @@ public interface PageRepository extends MongoRepository<PageBook,String> {
     Optional<PageBook> findById(String id);
     Optional<PageBook> findByPageNo(int pageNo);
     List<PageBook> findByBook_Id(String id);
+    Optional<PageBook> findByBook_IdAndPageNo(String id, int pageNo);
 }

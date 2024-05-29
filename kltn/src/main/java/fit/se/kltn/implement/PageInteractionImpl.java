@@ -18,6 +18,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -88,132 +89,157 @@ public class PageInteractionImpl implements PageInteractionService {
         return findRecentReadsByPage(startDate, today);
     }
 
+    private List<Book> findRecentReadsByPage() {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.group("page_id.book_id").sum("read").as("totalReadCount"),
+                Aggregation.sort(Sort.by("totalReadCount").descending())
+        );
+
+        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "page_interactions", Map.class);
+        List<Book> list = new ArrayList<>();
+        for (Map map : results) {
+            ObjectId objectId = (ObjectId) map.get("_id");
+            String bookId = objectId.toHexString();
+            Integer totalReadCount = (Integer) map.get("totalReadCount");
+            Optional<Book> b = bookRepository.findById(bookId);
+            if (b.isPresent()) {
+                Book bb = b.get();
+                BookComputed computed = new BookComputed();
+                computed.setRead(totalReadCount);
+                bb.setBookComputed(computed);
+                list.add(bb);
+            }
+        }
+        return list;
+    }
+
     @Override
     public List<Long> findRecentReadsByDate() {
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime day1 = today.minusDays(1);
-        LocalDateTime day2 = today.minusDays(2);
-        LocalDateTime day3 = today.minusDays(3);
-        LocalDateTime day4 = today.minusDays(4);
-        LocalDateTime day5 = today.minusDays(5);
+        LocalDate today = LocalDate.now();
         List<Long> list = new ArrayList<>();
-        long l = findRecentReadByDate(today);
-        list.add(0, l);
-        long l0 = findRecentReadByDate(day1);
-        list.add(0, l0);
-        long l1 = findRecentReadByDate(day2);
-        list.add(0, l1);
-        long l2 = findRecentReadByDate(day3);
-        list.add(0, l2);
-        long l3 = findRecentReadByDate(day4);
-        list.add(0, l3);
-        long l4 = findRecentReadByDate(day5);
-        list.add(0, l4);
+        for (int i = 0; i <= 5; i++) {
+            LocalDate day = today.minusDays(i);
+            long count = findRecentReadByDate(day.plusDays(1).atStartOfDay());
+            list.add(0, count);  // Add to the beginning of the list to maintain order
+        }
+
         return list;
     }
 
-    @Override
-    public List<Long> findRecentEmoByDate() {
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime day1 = today.minusDays(1);
-        LocalDateTime day2 = today.minusDays(2);
-        LocalDateTime day3 = today.minusDays(3);
-        LocalDateTime day4 = today.minusDays(4);
-        LocalDateTime day5 = today.minusDays(5);
-        List<Long> list = new ArrayList<>();
-        long l = findRecentEmoByDate(today);
-        list.add(0, l);
-        long l0 = findRecentEmoByDate(day1);
-        list.add(0, l0);
-        long l1 = findRecentEmoByDate(day2);
-        list.add(0, l1);
-        long l2 = findRecentEmoByDate(day3);
-        list.add(0, l2);
-        long l3 = findRecentEmoByDate(day4);
-        list.add(0, l3);
-        long l4 = findRecentEmoByDate(day5);
-        list.add(0, l4);
-        return list;
-    }
-
-    public long findRecentEmoByDate(LocalDateTime endDate) {
+    public long findRecentReadByDate(LocalDateTime endDate) {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("emoTime").lte(endDate)),
-                Aggregation.group("type").count().as("totalEmoCount")  // Nhóm theo loại cảm xúc và tính tổng số lượng
+                Aggregation.match(Criteria.where("readTime").lte(endDate)),
+                Aggregation.group("page_id.book_id").sum("read").as("totalReadCount"),
+                Aggregation.sort(Sort.by("totalReadCount").descending())
         );
         AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "page_interactions", Document.class);
         List<Document> mappedResults = results.getMappedResults();
-
-        int totalEmoCount = 0;
+        long totalReadCount = 0;
         for (Document document : mappedResults) {
-            totalEmoCount += document.getInteger("totalEmoCount");
+            if (document.containsKey("totalReadCount")) {
+                totalReadCount += document.getInteger("totalReadCount");
+            }
         }
-        return totalEmoCount;
+        return totalReadCount;
     }
+
+
+    @Override
+    public List<Long> findRecentEmoByDate() {
+        LocalDate today = LocalDate.now();
+        List<Long> list = new ArrayList<>();
+
+        for (int i = 0; i < 6; i++) {
+            LocalDate endDate = today.minusDays(i); // Tính toán ngày kết thúc (endDate) của mỗi ngày cần thống kê
+            long count = findRecentEmoByDate(endDate.atStartOfDay(), endDate.plusDays(1).atStartOfDay()); // Truyền cả startDate và endDate
+            list.add(0, count); // Thêm vào cuối danh sách để giữ thứ tự từ mới đến cũ
+        }
+
+        return list;
+    }
+
+    // Cải tiến phương thức tìm kiếm
+    public long findRecentEmoByDate(LocalDateTime startDate, LocalDateTime endDate) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("emoTime").gte(startDate).lt(endDate)), // Lọc theo khoảng thời gian
+                Aggregation.group("type").count().as("totalEmoCount"),
+                Aggregation.sort(Sort.by("totalEmoCount").descending())
+        );
+        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "page_interactions", Document.class);
+
+        // Trả về 0 nếu không có kết quả
+        return results.getMappedResults().stream()
+                .filter(doc -> doc.containsKey("totalEmoCount"))
+                .mapToInt(doc -> doc.getInteger("totalEmoCount"))
+                .sum();
+    }
+
 
     @Override
     public List<Long> findRecentCommentByDate() {
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime day1 = today.minusDays(1);
-        LocalDateTime day2 = today.minusDays(2);
-        LocalDateTime day3 = today.minusDays(3);
-        LocalDateTime day4 = today.minusDays(4);
-        LocalDateTime day5 = today.minusDays(5);
+        LocalDate today = LocalDate.now();
         List<Long> list = new ArrayList<>();
-        long l = findRecentCommentByDate(today);
-        list.add(0, l);
-        long l0 = findRecentCommentByDate(day1);
-        list.add(0, l0);
-        long l1 = findRecentCommentByDate(day2);
-        list.add(0, l1);
-        long l2 = findRecentCommentByDate(day3);
-        list.add(0, l2);
-        long l3 = findRecentCommentByDate(day4);
-        list.add(0, l3);
-        long l4 = findRecentCommentByDate(day5);
-        list.add(0, l4);
+
+        // Include the current day
+        for (int i = 0; i < 6; i++) {
+            LocalDate day = today.minusDays(i);
+            LocalDateTime startOfDay = day.atStartOfDay();
+            LocalDateTime endOfDay = day.plusDays(1).atStartOfDay();
+            long commentCount = findRecentCommentByDate(startOfDay, endOfDay);
+            list.add(0, commentCount);
+        }
+
         return list;
     }
 
-    public long findRecentCommentByDate(LocalDateTime endDate) {
+    public long findRecentCommentByDate(LocalDateTime startDate, LocalDateTime endDate) {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("createAt").lte(endDate).and("type").is("COMMENT")),
-                Aggregation.group("book_id").count().as("totalCommentCount")  // Nhóm theo loại cảm xúc và tính tổng số lượng
+                Aggregation.match(Criteria.where("createAt").gte(startDate).lt(endDate).and("type").is("COMMENT")),
+                Aggregation.group("book_id").count().as("totalCommentCount"),
+                Aggregation.sort(Sort.by("totalCommentCount").descending())
         );
         AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "comments", Document.class);
         List<Document> mappedResults = results.getMappedResults();
-
-        long totalEmoCount = 0;
+        long totalCommentCount = 0;
         for (Document document : mappedResults) {
-            // Lấy tổng số lượng cảm xúc từ mỗi loại và cộng vào tổng số lượng tổng cộng
-            totalEmoCount += document.getInteger("totalCommentCount");
+            if (document.containsKey("totalCommentCount")) {
+                totalCommentCount += document.getInteger("totalCommentCount");
+            }
         }
-        return totalEmoCount;
+        return totalCommentCount;
     }
+
 
     @Override
     public List<Long> findRecentRateByDate() {
-        LocalDateTime today = LocalDateTime.now();
-        LocalDateTime day1 = today.minusDays(1);
-        LocalDateTime day2 = today.minusDays(2);
-        LocalDateTime day3 = today.minusDays(3);
-        LocalDateTime day4 = today.minusDays(4);
-        LocalDateTime day5 = today.minusDays(5);
+        LocalDate today = LocalDate.now();
         List<Long> list = new ArrayList<>();
-        long l = findRecentRateByDate(today);
-        list.add(0, l);
-        long l0 = findRecentRateByDate(day1);
-        list.add(0, l0);
-        long l1 = findRecentRateByDate(day2);
-        list.add(0, l1);
-        long l2 = findRecentRateByDate(day3);
-        list.add(0, l2);
-        long l3 = findRecentRateByDate(day4);
-        list.add(0, l3);
-        long l4 = findRecentRateByDate(day5);
-        list.add(0, l4);
+
+        for (int i = 0; i < 6; i++) {
+            LocalDate endDate = today.minusDays(i);
+            LocalDateTime startOfDay = endDate.atStartOfDay(); // Tính toán startDate
+            LocalDateTime endOfDay = endDate.plusDays(1).atStartOfDay(); // Tính toán endDate
+            long count = findRecentRateByDate(startOfDay, endOfDay);
+            list.add(0, count); // Thêm vào cuối để giữ thứ tự từ mới đến cũ
+        }
+
         return list;
     }
+
+    // Cải tiến phương thức tìm kiếm
+    public long findRecentRateByDate(LocalDateTime startDate, LocalDateTime endDate) {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("createAt").gte(startDate).lt(endDate).and("type").is("RATE")),
+                Aggregation.group("book_id").count().as("totalRateCount")
+        );
+        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "comments", Document.class);
+
+        // Tính tổng trực tiếp từ kết quả
+        return results.getMappedResults().stream()
+                .mapToLong(doc -> doc.getInteger("totalRateCount", 0)) // Lấy giá trị, mặc định là 0 nếu không tìm thấy
+                .sum();
+    }
+
 
     @Override
     public List<Long> findUserByDate() {
@@ -259,42 +285,6 @@ public class PageInteractionImpl implements PageInteractionService {
             totalEmoCount += document.getInteger("totalUserCount");
         }
         return totalEmoCount;
-    }
-
-
-    public long findRecentRateByDate(LocalDateTime endDate) {
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("createAt").lte(endDate).and("type").is("RATE")),
-                Aggregation.group("book_id").count().as("totalRateCount")  // Nhóm theo loại cảm xúc và tính tổng số lượng
-        );
-        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "comments", Document.class);
-        List<Document> mappedResults = results.getMappedResults();
-
-        long totalEmoCount = 0;
-        for (Document document : mappedResults) {
-            // Lấy tổng số lượng cảm xúc từ mỗi loại và cộng vào tổng số lượng tổng cộng
-            totalEmoCount += document.getInteger("totalRateCount");
-        }
-        if (totalEmoCount == 0)
-            return 1;
-        return totalEmoCount;
-    }
-
-    public long findRecentReadByDate(LocalDateTime endDate) {
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("readTime").lte(endDate)),
-                Aggregation.group("page_id.book_id").sum("read").as("totalReadCount"),
-                Aggregation.sort(Sort.by("totalReadCount").descending())
-        );
-        AggregationResults<Document> results = mongoTemplate.aggregate(aggregation, "page_interactions", Document.class);
-        List<Document> mappedResults = results.getMappedResults();
-        long totalReadCount = 0;
-        for (Document document : mappedResults) {
-            if (document.containsKey("totalReadCount")) {
-                totalReadCount += document.getInteger("totalReadCount");
-            }
-        }
-        return totalReadCount;
     }
 
 
@@ -450,27 +440,5 @@ public class PageInteractionImpl implements PageInteractionService {
         return list;
     }
 
-    private List<Book> findRecentReadsByPage() {
-        Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.group("page_id.book_id").sum("read").as("totalReadCount"),
-                Aggregation.sort(Sort.by("totalReadCount").descending())
-        );
 
-        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "page_interactions", Map.class);
-        List<Book> list = new ArrayList<>();
-        for (Map map : results) {
-            ObjectId objectId = (ObjectId) map.get("_id");
-            String bookId = objectId.toHexString();
-            Integer totalReadCount = (Integer) map.get("totalReadCount");
-            Optional<Book> b = bookRepository.findById(bookId);
-            if (b.isPresent()) {
-                Book bb = b.get();
-                BookComputed computed = new BookComputed();
-                computed.setRead(totalReadCount);
-                bb.setBookComputed(computed);
-                list.add(bb);
-            }
-        }
-        return list;
-    }
 }

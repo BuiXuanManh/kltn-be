@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>fit.se</groupId>
 	<artifactId>kltn</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>kltn</name>
 	<description>kltn</description>
 	<properties>
@@ -97,7 +97,7 @@
                 <configuration>
                     <source>22</source>
                     <target>22</target>
-                    <compilerArgs>--enable-preview</compilerArgs>
+<!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
                 </configuration>
             </plugin>
         </plugins>

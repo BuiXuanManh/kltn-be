@@ -31,13 +31,21 @@ public class UserController {
     private UserService service;
     @Autowired
     private ProfileService profileService;
-   
+
+    @PostMapping("/profile/save")
+    public Profile saveProfile(@RequestBody Profile profile, @AuthenticationPrincipal UserDto dto) {
+        Profile p = authenProfile(dto);
+        p.setImage(profile.getImage());
+        p.setCoverImage(profile.getCoverImage());
+        return profileService.save(p);
+    }
+
     public Profile authenProfile(UserDto dto) {
         User u = service.findByUserName(dto.getUsername()).orElseThrow(() -> new UsernameNotFoundException("Not found"));
         Optional<Profile> p = profileService.findByUserId(u.getId());
         if (p.isPresent()) {
             return p.get();
-        } else throw new RuntimeException("không tìm thấy profile user có mssv: "+ u.getMssv());
+        } else throw new RuntimeException("không tìm thấy profile user có mssv: " + u.getMssv());
     }
 
     @GetMapping("/profile")
