@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>fit.se</groupId>
 	<artifactId>kltn</artifactId>
-	<version>0.0.1</version>
+	<version>1</version>
 	<name>kltn</name>
 	<description>kltn</description>
 	<properties>
