@@ -429,7 +429,7 @@ public class ComputedBookController {
 
     @PostMapping("/{bookId}")
     @Operation(summary = "thống kê tất cả các tương tác của book")
-    public ComputedBook computed(@PathVariable("bookId") String bookId) {
+    public ComputedBook computedInteractionBook(@PathVariable("bookId") String bookId) {
         Book b = bookService.findById(bookId).orElseThrow(() -> new RuntimeException("không tìm thấy book có id: " + bookId));
         Optional<ComputedBook> com = service.findByBookId(bookId);
         List<BookInteraction> bi = bookInteractionService.findByBookId(b.getId());
